@@ -1,0 +1,85 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/sora";
+
+/*
+ * Ayala OS — dark analytics theme derived from DESIGN.md (brand green/coral,
+ * Sora + Inter). The app is dark-only by product decision (DECISIONS.md D-006).
+ * Chart series colours validated with the dataviz palette validator against
+ * --surface (#16181A): CVD ΔE ≥ 9.4, all pass.
+ */
+:root {
+  color-scheme: dark;
+  --bg: #0d0e0f;
+  --surface: #16181a;
+  --surface-2: #1c1f22;
+  --border: #272a2e;
+  --border-strong: #34383d;
+  --ink: #edebe6;
+  --ink-soft: #a6a49c;
+  --ink-muted: #75746d;
+
+  /* Brand accents (UI chrome only; text on them uses --bg) */
+  --accent: #12b76a;
+  --accent-soft: rgb(18 183 106 / 0.12);
+  --coral: #f2765c;
+  --coral-soft: rgb(242 118 92 / 0.12);
+
+  /* Chart series — fixed order, never cycled */
+  --series-1: #199e70;
+  --series-2: #d95926;
+  --series-3: #3987e5;
+  --series-4: #c98500;
+  --series-5: #9085e9;
+  --series-previous: #5f6166;
+
+  /* Status (reserved; always paired with icon/sign) */
+  --good: #3dbe82;
+  --warning: #d9a441;
+  --critical: #e66767;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-muted: var(--ink-muted);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-coral: var(--coral);
+  --color-coral-soft: var(--coral-soft);
+  --color-good: var(--good);
+  --color-warning: var(--warning);
+  --color-critical: var(--critical);
+  --font-sans: "Inter Variable", system-ui, -apple-system, sans-serif;
+  --font-display: "Sora Variable", "Inter Variable", system-ui, sans-serif;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+body {
+  font-family: var(--font-sans);
+  font-feature-settings: "tnum" 1, "cv11" 1;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+/* Recharts: keep focus rings off SVG wrappers but visible on controls */
+.recharts-wrapper:focus,
+.recharts-surface:focus {
+  outline: none;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+}
