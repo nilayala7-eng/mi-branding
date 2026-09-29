@@ -78,4 +78,7 @@ export interface DataRepository {
   listExperiments(): Promise<Experiment[]>;
   createExperiment(input: NewExperiment): Promise<Experiment>;
   updateExperiment(id: string, patch: ExperimentPatch): Promise<Experiment>;
+  /** Manual tag (one per dimension); overrides automatic tags. */
+  setManualTag(postId: string, valueId: string): Promise<void>;
+  removeTag(postId: string, dimension: TaxonomyDimensionKey): Promise<void>;
 }

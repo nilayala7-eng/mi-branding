@@ -1,6 +1,6 @@
 import { filterPosts, localDate } from "@/lib/metrics/filters";
 import { inRange, type DateRange } from "@/lib/domain/periods";
-import type { Experiment, TaxonomyValue } from "@/lib/domain/types";
+import type { Experiment, TaxonomyDimensionKey, TaxonomyValue } from "@/lib/domain/types";
 import type {
   AccountSummary,
   DataRepository,
@@ -98,6 +98,21 @@ export class MockRepository implements DataRepository {
     if (idx === -1) throw new Error(`Experiment ${id} not found`);
     this.experiments[idx] = { ...this.experiments[idx], ...patch };
     return this.experiments[idx];
+  }
+
+  async setManualTag(postId: string, valueId: string) {
+    const post = this.data.posts.find((p) => p.id === postId);
+    const value = this.data.taxonomy.find((v) => v.id === valueId);
+    if (!post || !value) throw new Error("Post or taxonomy value not found");
+    post.tags = [
+      ...post.tags.filter((t) => t.dimension !== value.dimension),
+      { dimension: value.dimension, valueId: value.id, slug: value.slug, label: value.label, source: "manual", confidence: 1 },
+    ];
+  }
+
+  async removeTag(postId: string, dimension: TaxonomyDimensionKey) {
+    const post = this.data.posts.find((p) => p.id === postId);
+    if (post) post.tags = post.tags.filter((t) => t.dimension !== dimension);
   }
 
   /** Exposed for tests. */

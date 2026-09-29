@@ -24,5 +24,6 @@ export function proxy(request: NextRequest) {
 export const config = {
   // Everything except static assets. The Instagram OAuth callback is also
   // protected: the browser sends the Basic credentials on the redirect.
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  // /api/cron/* is authenticated with CRON_SECRET inside the route instead.
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/cron/).*)"],
 };

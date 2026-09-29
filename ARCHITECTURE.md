@@ -17,11 +17,11 @@
                          │            │                                            │
                          │            ▼                                            │
                          │   lib/data  DataRepository  ──┬─ MockRepository (F1)   │
-                         │                               └─ Supabase repo (F2)    │
+                         │                               └─ PostgresRepository    │
                          └─────────────────────────────────────────────────────────┘
    lib/ai  (tool registry + analyst rules + chat loop) ──▶ Claude API
    mcp/server.ts (stdio) ── mismo tool registry ──▶ Claude Code / Claude Desktop
-   lib/meta (Fase 2, bloqueado hasta verificar docs) ──▶ Instagram Graph API
+   lib/meta (OAuth + GraphClient + MetaInstagramSource) ──▶ graph.instagram.com v26
 ```
 
 ## Capas y reglas
@@ -34,7 +34,8 @@
 | Negocio | `src/services/*` | Toda la lógica de negocio. Reciben un repositorio → testeables. |
 | IA | `src/lib/ai` | Reglas del analista, registro de herramientas (zod), bucle de chat. |
 | MCP | `mcp/server.ts` | Expone **el mismo** registro de herramientas por stdio. |
-| Meta | `src/lib/meta` | Hechos de la API con nivel de verificación. Sin endpoints hasta verificarlos. |
+| Meta | `src/lib/meta` | OAuth, cliente Graph, mapeo de métricas por tipo, hechos verificados. |
+| BD | `src/lib/db`, `src/lib/data/postgres` | Postgres (Supabase) vía `DATABASE_URL`; cuentas y tokens cifrados. |
 | Seguridad | `src/lib/security`, `src/proxy.ts` | Contraseña de acceso, cifrado de tokens, state OAuth firmado. |
 | UI | `src/app`, `src/components` | Solo presenta. Nunca calcula métricas por su cuenta. |
 
@@ -44,9 +45,11 @@
 → `src/services/analytics`. `detectPatterns`, `generateStrategy` → `src/services/strategy`.
 `createExperiment` → `src/services/experiments`.
 
-## Flujo de datos de Instagram (Fase 2)
+## Flujo de datos de Instagram
 
-`InstagramSource` (adaptador Meta, pendiente) → `runSync()` → `SyncStore` (Supabase).
+Settings → `/api/instagram/connect` → Instagram → `/api/instagram/callback` (token cifrado).
+Sync: `/api/instagram/sync` (manual) o `/api/cron/sync` (diario) → `syncConnectedAccount()` (renueva token) →
+`MetaInstagramSource` → `runSync()` → `PostgresSyncStore`.
 Claves de idempotencia: `posts(account_id, ig_media_id)`, `post_insights(post_id, captured_on)`,
 `account_insights(account_id, date)`. Un sync con lock, registro en `sync_runs`, errores por post
 no abortan el run (`partial`), tokens redactados en errores.

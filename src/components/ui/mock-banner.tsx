@@ -8,7 +8,7 @@ export function MockBanner() {
         <TriangleAlert size={14} className="shrink-0 text-warning" aria-hidden />
         <span>
           <strong className="font-medium text-ink">Datos de demostración.</strong> Todas las cifras son generadas; ningún patrón
-          describe tu cuenta real. Instagram se conectará cuando se verifique la API de Meta —{" "}
+          describe tu cuenta real. Para ver tus datos reales configura Supabase e Instagram —{" "}
           <Link href="/settings" className="underline decoration-ink-muted underline-offset-2 hover:text-ink">
             ver estado
           </Link>

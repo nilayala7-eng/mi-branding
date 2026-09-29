@@ -9,6 +9,7 @@ import { fmtCompact, fmtDate, fmtDuration, fmtNumber, fmtRate, fmtTime } from "@
 import { param, rangeFromSearchParams } from "@/lib/page-params";
 import { getPostMetrics } from "@/services/analytics";
 import { TAXONOMY_DIMENSIONS } from "@/lib/data/taxonomy-seed";
+import { saveTagsAction } from "./actions";
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
@@ -193,6 +194,32 @@ export default async function ContentPage({ searchParams }: Props) {
                           })}
                         </div>
                       )}
+                      <details className="mt-1.5 text-[11px]">
+                        <summary className="cursor-pointer text-ink-muted hover:text-ink-soft">Editar etiquetas</summary>
+                        <form action={saveTagsAction} className="mt-2 grid w-[240px] gap-1.5">
+                          <input type="hidden" name="postId" value={p.id} />
+                          {TAXONOMY_DIMENSIONS.map((d) => (
+                            <label key={d.key} className="flex items-center justify-between gap-2">
+                              <span className="text-ink-muted">{d.label}</span>
+                              <select
+                                name={`dim:${d.key}`}
+                                defaultValue={p.tags.find((t) => t.dimension === d.key)?.valueId ?? ""}
+                                className="w-36 rounded border border-border bg-bg px-1 py-0.5 text-ink"
+                              >
+                                <option value="">—</option>
+                                {taxonomy
+                                  .filter((v) => v.dimension === d.key && v.active)
+                                  .map((v) => (
+                                    <option key={v.id} value={v.id}>
+                                      {v.label}
+                                    </option>
+                                  ))}
+                              </select>
+                            </label>
+                          ))}
+                          <button className="mt-1 rounded bg-surface-2 px-2 py-1 text-ink hover:bg-border">Guardar</button>
+                        </form>
+                      </details>
                     </td>
                   </tr>
                 ))}

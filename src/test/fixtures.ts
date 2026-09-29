@@ -114,6 +114,15 @@ export class FixtureRepository implements DataRepository {
     this.experiments.push(e);
     return e;
   }
+  async setManualTag(postId: string, valueId: string) {
+    const post = this.posts.find((p) => p.id === postId);
+    const [dimension, slug] = valueId.split(":") as [TaxonomyDimensionKey, string];
+    if (post) post.tags = [...post.tags.filter((t) => t.dimension !== dimension), tag(dimension, slug)];
+  }
+  async removeTag(postId: string, dimension: TaxonomyDimensionKey) {
+    const post = this.posts.find((p) => p.id === postId);
+    if (post) post.tags = post.tags.filter((t) => t.dimension !== dimension);
+  }
   async updateExperiment(id: string, patch: ExperimentPatch) {
     const e = this.experiments.find((x) => x.id === id);
     if (!e) throw new Error("not found");

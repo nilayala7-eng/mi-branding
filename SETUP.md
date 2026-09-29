@@ -16,28 +16,34 @@ Comprobaciones: `npm run check` (typecheck + lint + tests) · `npm run build`.
 
 | Variable | Obligatoria | Para qué |
 |---|---|---|
-| `DATA_SOURCE` | no (`mock`) | `mock` ahora; `supabase` en Fase 2 |
+| `DATA_SOURCE` | no (`mock`) | `mock` = demo · `supabase` = datos reales |
 | `APP_ACCESS_PASSWORD` | **sí en producción** | Contraseña de acceso (el navegador la pide; usuario cualquiera) |
-| `APP_ENCRYPTION_KEY` | antes de conectar Instagram | Cifra tokens. `openssl rand -base64 48` |
-| `ANTHROPIC_API_KEY` | para el chat | CLAUDE_SETUP.md |
-| `CLAUDE_MODEL` | no | Por defecto `claude-opus-5-5` |
-| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | Fase 2 | Base de datos |
-| `META_APP_ID`, `META_APP_SECRET`, `META_GRAPH_API_VERSION` | Fase 2 | META_SETUP.md |
+| `APP_ENCRYPTION_KEY` | para Instagram | Cifra tokens y firma el OAuth. `openssl rand -base64 48` |
+| `DATABASE_URL` | con `supabase` | Conexión a Postgres (ver abajo) |
+| `META_APP_ID`, `META_APP_SECRET`, `META_GRAPH_API_VERSION` | para Instagram | META_SETUP.md |
+| `APP_URL` | en producción | URL pública (se usa para la redirect URI de Instagram) |
+| `CRON_SECRET` | en producción | Protege el sync diario automático |
+| `ANTHROPIC_API_KEY`, `CLAUDE_MODEL` | para el chat | CLAUDE_SETUP.md |
 
 `.env.local` está en `.gitignore`: nunca se sube a git.
 
-## Supabase (Fase 2)
+## Supabase (base de datos)
 
-1. Crea un proyecto en <https://supabase.com> (región UE).
-2. *Project Settings → API*: copia URL, `anon` key y `service_role` key a `.env.local`.
-3. Aplica el esquema: *SQL Editor* → pega `supabase/migrations/20260929000001_initial_schema.sql` → Run; después `supabase/seed.sql`.
-   (Alternativa CLI: `npx supabase link` + `npx supabase db push`.)
+1. Crea un proyecto en <https://supabase.com> (región UE, p. ej. Frankfurt). Guarda la contraseña de la base de datos.
+2. **SQL Editor → New query** → pega el contenido de `supabase/migrations/20260929000001_initial_schema.sql` → **Run**. Repite con `supabase/seed.sql`.
+3. Botón **Connect** (arriba) → **Transaction pooler** → copia la cadena `postgresql://…:6543/postgres`, sustituye `[YOUR-PASSWORD]` y úsala como `DATABASE_URL`.
+4. Pon `DATA_SOURCE=supabase`.
 
 ## Deploy en Vercel
 
-1. Importa el repo en <https://vercel.com/new>.
-2. Añade las variables de entorno (incluida **`APP_ACCESS_PASSWORD`**, sin ella la app responde 503).
-3. Deploy. Actualiza la redirect URI de Meta con el dominio de Vercel.
+1. <https://vercel.com/new> → importa el repositorio `mi-branding`.
+2. Añade todas las variables de la tabla (Production).
+3. **Deploy**. Copia el dominio (`https://….vercel.app`), ponlo en `APP_URL` y en la redirect URI de Meta, y vuelve a desplegar.
+4. El sync diario (`vercel.json`, 05:00 UTC) funciona solo si `CRON_SECRET` está definida.
+
+## Tests
+
+`npm run check` (typecheck + lint + tests unitarios). Tests contra Postgres real: `TEST_DATABASE_URL=postgres://… npm run test:db` (**borra** esa base de datos; usa una vacía).
 
 ## MCP (opcional)
 

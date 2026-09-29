@@ -2,7 +2,7 @@
 
 **Instagram Intelligence & Content Strategy** — centro de control privado para analizar la cuenta de Instagram de Ayala Fitness, detectar patrones y convertir métricas en hipótesis, experimentos y recomendaciones, con Claude como analista.
 
-> Estado: **Fase 1 (fundación) completa con datos de demostración.** La conexión con Instagram está pendiente de verificar la API actual de Meta — ver [PROGRESS.md](PROGRESS.md).
+> Estado: **Fases 1 y 2 completas.** Con `DATA_SOURCE=mock` funciona con datos de demostración; con Supabase + app de Meta importa tus datos reales de Instagram — ver [META_SETUP.md](META_SETUP.md) y [PROGRESS.md](PROGRESS.md).
 
 ## Qué hace
 

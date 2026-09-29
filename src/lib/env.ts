@@ -23,6 +23,8 @@ const schema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: optionalSecret,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: optionalSecret,
   SUPABASE_SERVICE_ROLE_KEY: optionalSecret,
+  /** Postgres connection string (Supabase → Connect → Transaction pooler). */
+  DATABASE_URL: optionalSecret,
 
   // Meta / Instagram (Phase 2 — values pending verification, see META_SETUP.md)
   META_APP_ID: optionalSecret,
@@ -30,13 +32,15 @@ const schema = z.object({
   META_GRAPH_API_VERSION: z
     .string()
     .regex(/^v\d+\.\d+$/, "Expected a version like v24.0")
-    .default("v24.0"),
+    .default("v26.0"),
 
   // Security
   /** 32+ byte secret used to sign OAuth state and encrypt tokens at rest. */
   APP_ENCRYPTION_KEY: optionalSecret,
   /** Shared password protecting this private app (single-user). */
   APP_ACCESS_PASSWORD: optionalSecret,
+  /** Bearer secret for the scheduled sync endpoint (Vercel Cron sends it). */
+  CRON_SECRET: optionalSecret,
 });
 
 export type ServerEnv = z.infer<typeof schema>;
@@ -62,7 +66,7 @@ export function integrationStatus() {
   return {
     dataSource: env.DATA_SOURCE,
     claudeConfigured: Boolean(env.ANTHROPIC_API_KEY),
-    supabaseConfigured: Boolean(env.NEXT_PUBLIC_SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY),
+    supabaseConfigured: Boolean(env.DATABASE_URL),
     metaConfigured: Boolean(env.META_APP_ID && env.META_APP_SECRET),
     encryptionConfigured: Boolean(env.APP_ENCRYPTION_KEY && env.APP_ENCRYPTION_KEY.length >= 32),
     accessPasswordConfigured: Boolean(env.APP_ACCESS_PASSWORD),

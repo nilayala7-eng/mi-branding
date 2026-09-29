@@ -14,16 +14,20 @@
 - Verificación: `npm run check` (typecheck + lint + 119 tests) ✅ · `next build` ✅ · gate de acceso en producción probado (503 / 401 / 200) ✅.
 - **No probado:** chat contra la API real de Claude (sin API key en el entorno).
 
-## Fase 2 — Datos reales (siguiente)
-- [ ] Verificar docs de Meta y marcar cada hecho como `verified`.
-- [ ] Usuario: crear app de Meta (META_SETUP.md) y proyecto Supabase (SETUP.md).
-- [ ] `SupabaseRepository` + `SupabaseSyncStore` (mismos contratos, tests compartidos).
-- [ ] Adaptador `InstagramSource` (OAuth, media, insights) + `/api/instagram/*`.
-- [ ] Cron de sync (Vercel Cron) + refresco de token + caché de thumbnails.
-- [ ] Edición de taxonomía y etiquetado manual en Content.
+## Fase 2 — Datos reales ✅ (código) · ⏳ (tu configuración)
+- Documentación de Meta verificada (v26.0) → `src/lib/meta/verification.ts`, META_SETUP.md.
+- OAuth Instagram Login completo: state firmado + cookie (anti-CSRF), token largo cifrado, renovación automática.
+- `MetaInstagramSource`: media paginada, insights por tipo (sin follows en Reels), métricas diarias de cuenta, seguidores diarios.
+- Postgres: `PostgresRepository` + `PostgresSyncStore` (upserts idempotentes, lock, `sync_runs`).
+- Settings: Conectar / Sincronizar / Sync completo / Desconectar. Cron diario (`vercel.json`, `/api/cron/sync` con `CRON_SECRET`).
+- Content: etiquetado manual por dimensión (las manuales nunca se sobrescriben).
+- Verificación: 146 tests (incl. 9 de integración contra PostgreSQL 16 y 18 de Meta con fetch simulado) · build ✅ · app en modo `supabase` probada (páginas, redirect OAuth, state inválido rechazado, cron 401 sin secreto).
+- **No probado todavía:** llamadas reales a Instagram (requiere tu app de Meta y tu cuenta).
+- Pendiente de confirmar con datos reales: mapeo follows/unfollows, VIDEO = Reel, unidad de `ig_reels_avg_watch_time`.
 
 ## Fase 3 — Inteligencia
 - [ ] Clasificador con Claude (structured outputs) + revisión humana.
+- [ ] Editor de taxonomía en Settings; caché de thumbnails en Supabase Storage.
 - [ ] Persistir `claude_analyses` y `strategy_recommendations`; chat en streaming.
 - [ ] Evaluación automática de experimentos con posts asignados.
 

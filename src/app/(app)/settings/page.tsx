@@ -5,11 +5,16 @@ import { getRepository } from "@/lib/data";
 import { TAXONOMY_DIMENSIONS } from "@/lib/data/taxonomy-seed";
 import { integrationStatus } from "@/lib/env";
 import { META_FACTS, type VerificationLevel } from "@/lib/meta/verification";
+import { fmtDate } from "@/lib/format";
+import { getActiveAccount } from "@/lib/db/accounts";
+import { getSql } from "@/lib/db/client";
+import { InstagramActions } from "./instagram-actions";
 
 const LEVEL: Record<VerificationLevel, { label: string; className: string }> = {
   verified: { label: "Verificado", className: "text-good" },
   sdk: { label: "SDK oficial", className: "text-[#7fb0ef]" },
   search: { label: "Solo búsqueda", className: "text-warning" },
+  pending: { label: "Confirmar con datos reales", className: "text-warning" },
   unverified: { label: "Sin verificar", className: "text-critical" },
 };
 
@@ -28,11 +33,17 @@ function Status({ ok, pending, label, detail }: { ok: boolean; pending?: boolean
   );
 }
 
-export default async function SettingsPage() {
+type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
+
+export default async function SettingsPage({ searchParams }: Props) {
+  const sp = await searchParams;
+  const igStatus = typeof sp.ig === "string" ? sp.ig : null;
   const repo = getRepository();
   const [account, taxonomy] = await Promise.all([repo.getAccount(), repo.getTaxonomy()]);
   const s = integrationStatus();
   const verified = META_FACTS.filter((f) => f.level === "verified").length;
+  const stored = s.dataSource === "supabase" && s.supabaseConfigured ? await getActiveAccount(getSql()).catch(() => null) : null;
+  const canConnect = s.metaConfigured && s.encryptionConfigured && s.dataSource === "supabase" && s.supabaseConfigured;
 
   return (
     <>
@@ -41,18 +52,25 @@ export default async function SettingsPage() {
         <Card>
           <CardHeader title="Conexiones" />
           <div className="divide-y divide-border px-5 pb-2">
-            <Status
-              ok={false}
-              pending
-              label="Instagram (Meta Graph API)"
-              detail={
-                <>
-                  Pendiente de verificación de la documentación oficial ({verified}/{META_FACTS.length} hechos verificados). La conexión se
-                  habilitará después. Guía: META_SETUP.md. App de Meta configurada: {s.metaConfigured ? "sí" : "no"} · Graph API{" "}
-                  {s.graphApiVersion}.
-                </>
-              }
-            />
+            <div>
+              <Status
+                ok={stored?.connectionStatus === "connected"}
+                pending={stored?.connectionStatus !== "connected"}
+                label={stored ? `Instagram @${stored.username} — ${stored.connectionStatus}` : "Instagram"}
+                detail={
+                  <>
+                    {stored?.tokenExpiresAt
+                      ? `Token válido hasta ${fmtDate(stored.tokenExpiresAt.toISOString())} (se renueva solo al sincronizar). `
+                      : ""}
+                    App de Meta: {s.metaConfigured ? "configurada" : "falta META_APP_ID / META_APP_SECRET"} · Graph API {s.graphApiVersion} ·{" "}
+                    {verified}/{META_FACTS.length} hechos de la API verificados. Guía: META_SETUP.md.
+                  </>
+                }
+              />
+              <div className="pb-3 pl-[30px]">
+                <InstagramActions canConnect={canConnect} connected={stored?.connectionStatus === "connected" || stored?.connectionStatus === "token_expired"} igStatus={igStatus} />
+              </div>
+            </div>
             <Status
               ok={s.claudeConfigured}
               label="Claude API"
@@ -62,7 +80,7 @@ export default async function SettingsPage() {
               ok={s.supabaseConfigured}
               pending={!s.supabaseConfigured}
               label="Supabase (PostgreSQL)"
-              detail={`Fuente de datos activa: ${s.dataSource}. ${s.supabaseConfigured ? "Credenciales presentes." : "Sin configurar (Fase 2)."}`}
+              detail={`Fuente de datos activa: ${s.dataSource}. ${s.supabaseConfigured ? "DATABASE_URL presente." : "Falta DATABASE_URL (SETUP.md)."}`}
             />
             <Status
               ok={s.accessPasswordConfigured}

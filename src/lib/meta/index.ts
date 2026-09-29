@@ -1,25 +1,31 @@
 /**
- * Meta / Instagram Graph API integration — PHASE 2, BLOCKED ON VERIFICATION.
- *
- * Deliberately empty of endpoint URLs, scopes and metric-per-media-type maps:
- * they must be taken from the live Meta documentation, not from memory
- * (see verification.ts and META_SETUP.md). The sync engine
- * (src/services/instagram/sync.ts) is ready and only needs an
- * `InstagramSource` implementation from this module.
+ * Meta / Instagram Graph API integration (Instagram API with Instagram Login).
+ * Verified against the official docs on 2026-09-29 — see verification.ts.
  */
-import { metaReadyForIntegration, META_FACTS } from "./verification";
+import { serverEnv } from "@/lib/env";
 
-export class MetaIntegrationPendingError extends Error {
-  readonly status = 501;
-  constructor() {
-    super(
-      "Instagram integration is not enabled yet: the Meta API flow, permissions and metrics must be verified against the current official documentation first. See META_SETUP.md.",
-    );
-  }
+export class MetaNotConfiguredError extends Error {
+  readonly status = 503;
 }
 
-export function assertMetaReady(): void {
-  if (!metaReadyForIntegration()) throw new MetaIntegrationPendingError();
+/** Everything the OAuth flow needs, or a clear error naming what is missing. */
+export function metaOAuthConfig() {
+  const env = serverEnv();
+  const missing = [
+    !env.META_APP_ID && "META_APP_ID",
+    !env.META_APP_SECRET && "META_APP_SECRET",
+    !env.APP_ENCRYPTION_KEY && "APP_ENCRYPTION_KEY",
+    env.DATA_SOURCE !== "supabase" && "DATA_SOURCE=supabase",
+    !env.DATABASE_URL && "DATABASE_URL",
+  ].filter(Boolean);
+  if (missing.length) throw new MetaNotConfiguredError(`Instagram connection not configured. Missing: ${missing.join(", ")}. See META_SETUP.md.`);
+  return {
+    appId: env.META_APP_ID!,
+    appSecret: env.META_APP_SECRET!,
+    encryptionKey: env.APP_ENCRYPTION_KEY!,
+    redirectUri: `${env.APP_URL.replace(/\/$/, "")}/api/instagram/callback`,
+    graphVersion: env.META_GRAPH_API_VERSION,
+  };
 }
 
-export { META_FACTS, metaReadyForIntegration };
+export { META_FACTS, metaReadyForIntegration } from "./verification";

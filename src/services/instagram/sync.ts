@@ -21,12 +21,19 @@ export interface SourceMedia {
   thumbnailUrl: string | null;
   publishedAt: ISODateTime;
   durationSec: number | null;
+  /** Counts from the media object itself; fallback when insights are missing. */
+  likeCount?: number | null;
+  commentsCount?: number | null;
 }
+
+/** Snapshot metrics plus any extra raw metrics the source returned. */
+export type SnapshotMetrics = Partial<PostMetrics> & { extra?: Record<string, number | null> };
+export type SourceAccountDay = AccountDailyMetrics & { extra?: Record<string, number | null> };
 
 export interface InstagramSource {
   listMedia(opts: { since?: ISODateTime }): Promise<SourceMedia[]>;
-  getMediaInsights(media: SourceMedia): Promise<Partial<PostMetrics>>;
-  getAccountDays(range: { from: ISODate; to: ISODate }): Promise<AccountDailyMetrics[]>;
+  getMediaInsights(media: SourceMedia): Promise<SnapshotMetrics>;
+  getAccountDays(range: { from: ISODate; to: ISODate }): Promise<SourceAccountDay[]>;
 }
 
 export interface SyncRunRecord {
@@ -55,8 +62,8 @@ export interface SyncStore {
   finishRun(runId: string, record: Omit<SyncRunRecord, "id" | "accountId" | "startedAt">): Promise<void>;
   lastSuccessfulSync(accountId: string): Promise<ISODateTime | null>;
   upsertPost(accountId: string, media: SourceMedia): Promise<{ postId: string; created: boolean }>;
-  upsertPostSnapshot(postId: string, capturedOn: ISODate, metrics: Partial<PostMetrics>): Promise<void>;
-  upsertAccountDays(accountId: string, days: AccountDailyMetrics[]): Promise<number>;
+  upsertPostSnapshot(postId: string, capturedOn: ISODate, metrics: SnapshotMetrics): Promise<void>;
+  upsertAccountDays(accountId: string, days: SourceAccountDay[]): Promise<number>;
 }
 
 export interface SyncOptions {

@@ -4,13 +4,15 @@ import { serverEnv } from "@/lib/env";
 import { localDate } from "@/lib/metrics/filters";
 import { MockRepository, MOCK_TIMEZONE } from "./mock/mock-repository";
 import type { DataRepository } from "./repository";
+import { getSql } from "@/lib/db/client";
+import { PostgresRepository } from "./postgres/postgres-repository";
 
 let cached: { key: string; repo: DataRepository } | null = null;
 
 /**
  * Returns the active data repository.
  * - DATA_SOURCE=mock (default in Phase 1): deterministic demo data.
- * - DATA_SOURCE=supabase: real data (Phase 2 — not implemented yet).
+ * - DATA_SOURCE=supabase: real data from Postgres (DATABASE_URL).
  */
 export function getRepository(): DataRepository {
   const env = serverEnv();
@@ -19,9 +21,8 @@ export function getRepository(): DataRepository {
   if (cached?.key === key) return cached.repo;
 
   if (env.DATA_SOURCE === "supabase") {
-    throw new Error(
-      "DATA_SOURCE=supabase is not implemented yet (Phase 2). See PROGRESS.md. Use DATA_SOURCE=mock.",
-    );
+    // New instance per call: cheap (shared connection pool) and never stale.
+    return new PostgresRepository(getSql(), env.ACCOUNT_TIMEZONE);
   }
   cached = { key, repo: new MockRepository(today) };
   return cached.repo;

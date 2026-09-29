@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "check": "npm run typecheck && npm run lint && npm run test",
     "mcp": "tsx mcp/server.ts",
-    "db:seed:generate": "tsx scripts/generate-seed.ts"
+    "db:seed:generate": "tsx scripts/generate-seed.ts",
+    "test:db": "TEST_DATABASE_URL=${TEST_DATABASE_URL:?set TEST_DATABASE_URL (database will be wiped)} vitest run src/lib/data/postgres"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.129.0",
@@ -24,6 +25,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^1.48.0",
     "next": "16.3.7",
+    "postgres": "^3.4.9",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "recharts": "^3.10.1",
