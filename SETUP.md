@@ -30,7 +30,7 @@ Comprobaciones: `npm run check` (typecheck + lint + tests) · `npm run build`.
 ## Supabase (base de datos)
 
 1. Crea un proyecto en <https://supabase.com> (región UE, p. ej. Frankfurt). Guarda la contraseña de la base de datos.
-2. **SQL Editor → New query** → pega el contenido de `supabase/migrations/20260929000001_initial_schema.sql` → **Run**. Repite con `supabase/seed.sql`.
+2. **SQL Editor → New query** → pega todo el contenido de `supabase/setup.sql` (tablas + categorías en un solo archivo) → **Run**.
 3. Botón **Connect** (arriba) → **Transaction pooler** → copia la cadena `postgresql://…:6543/postgres`, sustituye `[YOUR-PASSWORD]` y úsala como `DATABASE_URL`.
 4. Pon `DATA_SOURCE=supabase`.
 
