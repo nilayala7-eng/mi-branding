@@ -67,6 +67,13 @@ describe("basic auth gate", () => {
   it("passwords containing ':' work", () => {
     expect(checkBasicAuth(header("a:b:c"), "a:b:c", true)).toBe("allow");
   });
+  it("accepts non-ASCII passwords (UTF-8 or Latin-1) and ignores stray spaces", () => {
+    const utf8 = (pw: string) => `Basic ${btoa(String.fromCharCode(...new TextEncoder().encode(`nil:${pw}`)))}`;
+    expect(checkBasicAuth(utf8("contraseña€"), "contraseña€", true)).toBe("allow");
+    expect(checkBasicAuth(header("Año"), "Año", true)).toBe("allow"); // Latin-1 (older browsers)
+    expect(checkBasicAuth(header(" s3cret "), "s3cret", true)).toBe("allow");
+    expect(checkBasicAuth(utf8("contraseña"), "contrasena", true)).toBe("challenge");
+  });
   it("fails closed in production when unconfigured, open in dev", () => {
     expect(checkBasicAuth(null, undefined, true)).toBe("misconfigured");
     expect(checkBasicAuth(null, undefined, false)).toBe("allow");

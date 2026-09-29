@@ -25,14 +25,28 @@ export type AccessDecision = "allow" | "challenge" | "misconfigured";
 export function checkBasicAuth(header: string | null, password: string | undefined, isProduction: boolean): AccessDecision {
   if (!password) return isProduction ? "misconfigured" : "allow";
   if (!header?.startsWith("Basic ")) return "challenge";
-  let decoded: string;
+  let bytes: string;
   try {
-    decoded = atob(header.slice(6).trim());
+    bytes = atob(header.slice(6).trim());
   } catch {
     return "challenge";
   }
-  const sep = decoded.indexOf(":");
-  if (sep === -1) return "challenge";
-  // Username is ignored; only the password matters.
-  return safeEqual(decoded.slice(sep + 1), password) ? "allow" : "challenge";
+  // Browsers send UTF-8 (we ask for it with charset="UTF-8"); older ones Latin-1.
+  const utf8 = decodeUtf8(bytes);
+  const candidates = utf8 === null ? [bytes] : [utf8, bytes];
+  // Username is ignored; only the password matters. Stray spaces are ignored
+  // (the configured password is trimmed too).
+  const ok = candidates.some((decoded) => {
+    const sep = decoded.indexOf(":");
+    return sep !== -1 && safeEqual(decoded.slice(sep + 1).trim(), password);
+  });
+  return ok ? "allow" : "challenge";
+}
+
+function decodeUtf8(binary: string): string | null {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(Uint8Array.from(binary, (c) => c.charCodeAt(0)));
+  } catch {
+    return null;
+  }
 }
