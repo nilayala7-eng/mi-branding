@@ -12,6 +12,7 @@ import { PostgresSyncStore } from "@/services/instagram/postgres-store";
 import { runSync, type InstagramSource, type SourceMedia } from "@/services/instagram/sync";
 import { comparePeriods, getContentByDimension } from "@/services/analytics";
 import { PostgresRepository } from "./postgres-repository";
+import { EXPECTED_TABLES } from "../../../../scripts/expected-schema";
 
 const URL_ = process.env.TEST_DATABASE_URL;
 const SECRET = "k".repeat(40);
@@ -136,5 +137,43 @@ describe.skipIf(!URL_)("Postgres (integration)", () => {
     const u = await repo.updateExperiment(e.id, { status: "running" });
     expect(u).toMatchObject({ status: "running", baseline: 4.5, startDate: "2026-10-01" });
     expect(await repo.listExperiments()).toHaveLength(1);
+  });
+
+  // Keep last: these run setup.sql over the populated database.
+  const check = async () =>
+    (await sql.file(file("supabase/check.sql"))) as unknown as { tabla: string; estado: string; filas: string | null }[];
+  // setup.sql has its own begin/commit → needs a dedicated connection.
+  const runSetup = async () => {
+    const conn = await sql.reserve();
+    try {
+      await conn.file(file("supabase/setup.sql"));
+    } finally {
+      await conn`rollback`.catch(() => {}); // clears an aborted transaction; no-op after commit
+      conn.release();
+    }
+  };
+
+  it("check.sql matches the migration and flags foreign tables", async () => {
+    await sql`create table public.other_app (id int)`;
+    const rows = await check();
+    expect(rows.filter((r) => r.estado !== "OK").map((r) => [r.tabla, r.estado])).toEqual([["other_app", "AJENA"]]);
+    expect(rows).toHaveLength(Object.keys(EXPECTED_TABLES).length + 2); // + view + other_app
+  });
+
+  it("setup.sql re-runs over existing tables without touching data", async () => {
+    const before = await check();
+    const token = await getAccessToken(sql, SECRET, accountId);
+    await runSetup();
+    await runSetup();
+    expect(await check()).toEqual(before);
+    expect(await getAccessToken(sql, SECRET, accountId)).toBe(token);
+  });
+
+  it("setup.sql stops without changes when a same-named table is not ours", async () => {
+    await sql`alter table public.users rename column timezone to tz`;
+    await sql`drop table public.experiment_results`;
+    await expect(runSetup()).rejects.toThrow(/public\.users: faltan columnas timezone/);
+    const rows = await check();
+    expect(rows.find((r) => r.tabla === "experiment_results")?.estado).toBe("FALTA");
   });
 });

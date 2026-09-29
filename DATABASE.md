@@ -1,6 +1,7 @@
 # Base de datos
 
 PostgreSQL (Supabase). Esquema: `supabase/migrations/20260929000001_initial_schema.sql`. Seed de taxonomía: `supabase/seed.sql` (generado con `npm run db:seed:generate` desde `src/lib/data/taxonomy-seed.ts`). Validado en PostgreSQL 16.
+`supabase/setup.sql` = esquema + seed en una transacción, idempotente y con una comprobación previa que aborta si una tabla homónima no tiene las columnas esperadas (`scripts/expected-schema.ts`). `supabase/check.sql` = diagnóstico de solo lectura. Ambos generados por `npm run db:seed:generate`; el test de integración verifica que coinciden con la migración.
 
 ## Tablas
 

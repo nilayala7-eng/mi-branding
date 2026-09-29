@@ -2,6 +2,8 @@
 -- PostgreSQL 15+ (Supabase). All timestamps are timestamptz (UTC).
 -- Idempotency: every table fed by the Instagram sync has a natural unique key
 -- so that re-running a sync upserts instead of duplicating.
+-- The script itself is idempotent (if not exists / or replace): running it
+-- again never drops, recreates or overwrites existing tables or data.
 
 create extension if not exists pgcrypto;
 
@@ -18,7 +20,7 @@ end $$;
 -- ---------------------------------------------------------------------------
 -- users — app users (maps 1:1 to auth.users when Supabase Auth is enabled)
 -- ---------------------------------------------------------------------------
-create table public.users (
+create table if not exists public.users (
   id           uuid primary key default gen_random_uuid(),
   auth_user_id uuid unique,               -- references auth.users(id) once Auth is on
   email        text unique,
@@ -27,7 +29,7 @@ create table public.users (
   created_at   timestamptz not null default now(),
   updated_at   timestamptz not null default now()
 );
-create trigger users_updated_at before update on public.users
+create or replace trigger users_updated_at before update on public.users
   for each row execute function public.set_updated_at();
 
 -- ---------------------------------------------------------------------------
@@ -35,7 +37,7 @@ create trigger users_updated_at before update on public.users
 -- Tokens are stored ENCRYPTED by the app (AES-256-GCM, APP_ENCRYPTION_KEY);
 -- the database never sees a plaintext token. No passwords are ever stored.
 -- ---------------------------------------------------------------------------
-create table public.instagram_accounts (
+create table if not exists public.instagram_accounts (
   id                    uuid primary key default gen_random_uuid(),
   user_id               uuid not null references public.users(id) on delete cascade,
   ig_user_id            text not null,              -- Instagram-scoped user id from the API
@@ -58,14 +60,14 @@ create table public.instagram_accounts (
   updated_at            timestamptz not null default now(),
   unique (ig_user_id)
 );
-create index instagram_accounts_user_idx on public.instagram_accounts(user_id);
-create trigger instagram_accounts_updated_at before update on public.instagram_accounts
+create index if not exists instagram_accounts_user_idx on public.instagram_accounts(user_id);
+create or replace trigger instagram_accounts_updated_at before update on public.instagram_accounts
   for each row execute function public.set_updated_at();
 
 -- ---------------------------------------------------------------------------
 -- sync_runs — audit log of every sync (last sync, errors, counts)
 -- ---------------------------------------------------------------------------
-create table public.sync_runs (
+create table if not exists public.sync_runs (
   id                   uuid primary key default gen_random_uuid(),
   account_id           uuid not null references public.instagram_accounts(id) on delete cascade,
   kind                 text not null default 'incremental' check (kind in ('incremental','full','backfill')),
@@ -79,12 +81,12 @@ create table public.sync_runs (
   account_days_written integer not null default 0,
   errors               jsonb not null default '[]'::jsonb  -- [{scope, ref, message}] (tokens redacted)
 );
-create index sync_runs_account_started_idx on public.sync_runs(account_id, started_at desc);
+create index if not exists sync_runs_account_started_idx on public.sync_runs(account_id, started_at desc);
 
 -- ---------------------------------------------------------------------------
 -- posts — one row per Instagram media object
 -- ---------------------------------------------------------------------------
-create table public.posts (
+create table if not exists public.posts (
   id                 uuid primary key default gen_random_uuid(),
   account_id         uuid not null references public.instagram_accounts(id) on delete cascade,
   ig_media_id        text not null,
@@ -103,17 +105,17 @@ create table public.posts (
   updated_at         timestamptz not null default now(),
   unique (account_id, ig_media_id)          -- sync idempotency key
 );
-create index posts_account_published_idx on public.posts(account_id, published_at desc);
-create index posts_account_type_idx on public.posts(account_id, media_type);
-create index posts_caption_search_idx on public.posts using gin (to_tsvector('spanish', caption));
-create trigger posts_updated_at before update on public.posts
+create index if not exists posts_account_published_idx on public.posts(account_id, published_at desc);
+create index if not exists posts_account_type_idx on public.posts(account_id, media_type);
+create index if not exists posts_caption_search_idx on public.posts using gin (to_tsvector('spanish', caption));
+create or replace trigger posts_updated_at before update on public.posts
   for each row execute function public.set_updated_at();
 
 -- ---------------------------------------------------------------------------
 -- post_insights — daily snapshots of per-post metrics (history over time).
 -- NULL = metric not available from the API (never coerced to 0).
 -- ---------------------------------------------------------------------------
-create table public.post_insights (
+create table if not exists public.post_insights (
   id                  uuid primary key default gen_random_uuid(),
   post_id             uuid not null references public.posts(id) on delete cascade,
   captured_on         date not null,        -- account-local day of the snapshot
@@ -131,11 +133,11 @@ create table public.post_insights (
   extra               jsonb not null default '{}'::jsonb, -- any other metric returned
   unique (post_id, captured_on)             -- one snapshot per post per day
 );
-create index post_insights_post_captured_idx on public.post_insights(post_id, captured_on desc);
+create index if not exists post_insights_post_captured_idx on public.post_insights(post_id, captured_on desc);
 
 -- Latest snapshot per post — what the app reads for "current" metrics.
 -- security_invoker: the view obeys the caller's RLS instead of the owner's.
-create view public.post_latest_insights with (security_invoker = true) as
+create or replace view public.post_latest_insights with (security_invoker = true) as
   select distinct on (post_id) *
   from public.post_insights
   order by post_id, captured_on desc;
@@ -144,7 +146,7 @@ create view public.post_latest_insights with (security_invoker = true) as
 -- account_insights — one row per account per day. Account-level history is
 -- only retrievable from the API for a limited window, so we persist it.
 -- ---------------------------------------------------------------------------
-create table public.account_insights (
+create table if not exists public.account_insights (
   id             uuid primary key default gen_random_uuid(),
   account_id     uuid not null references public.instagram_accounts(id) on delete cascade,
   date           date not null,
@@ -162,19 +164,19 @@ create table public.account_insights (
   captured_at    timestamptz not null default now(),
   unique (account_id, date)
 );
-create index account_insights_account_date_idx on public.account_insights(account_id, date desc);
+create index if not exists account_insights_account_date_idx on public.account_insights(account_id, date desc);
 
 -- ---------------------------------------------------------------------------
 -- Content taxonomy — categories are DATA, editable without deploys.
 -- ---------------------------------------------------------------------------
-create table public.taxonomy_dimensions (
+create table if not exists public.taxonomy_dimensions (
   key         text primary key,             -- topic, subtopic, hook, cta, format, visual_style, audio, …
   label       text not null,
   description text,
   sort_order  integer not null default 0
 );
 
-create table public.taxonomy_values (
+create table if not exists public.taxonomy_values (
   id          uuid primary key default gen_random_uuid(),
   dimension   text not null references public.taxonomy_dimensions(key) on update cascade,
   slug        text not null,
@@ -186,11 +188,11 @@ create table public.taxonomy_values (
   updated_at  timestamptz not null default now(),
   unique (dimension, slug)
 );
-create trigger taxonomy_values_updated_at before update on public.taxonomy_values
+create or replace trigger taxonomy_values_updated_at before update on public.taxonomy_values
   for each row execute function public.set_updated_at();
 
 -- content_tags — post ↔ taxonomy value, with provenance.
-create table public.content_tags (
+create table if not exists public.content_tags (
   id          uuid primary key default gen_random_uuid(),
   post_id     uuid not null references public.posts(id) on delete cascade,
   value_id    uuid not null references public.taxonomy_values(id) on delete cascade,
@@ -203,15 +205,15 @@ create table public.content_tags (
   updated_at  timestamptz not null default now(),
   unique (post_id, dimension)               -- single-valued per dimension (DECISIONS D-011)
 );
-create index content_tags_value_idx on public.content_tags(value_id);
-create index content_tags_dimension_idx on public.content_tags(dimension, value_id);
-create trigger content_tags_updated_at before update on public.content_tags
+create index if not exists content_tags_value_idx on public.content_tags(value_id);
+create index if not exists content_tags_dimension_idx on public.content_tags(dimension, value_id);
+create or replace trigger content_tags_updated_at before update on public.content_tags
   for each row execute function public.set_updated_at();
 
 -- ---------------------------------------------------------------------------
 -- claude_analyses — persisted AI analyses with the data they were based on.
 -- ---------------------------------------------------------------------------
-create table public.claude_analyses (
+create table if not exists public.claude_analyses (
   id             uuid primary key default gen_random_uuid(),
   account_id     uuid not null references public.instagram_accounts(id) on delete cascade,
   kind           text not null check (kind in ('chat','period_review','classification','strategy')),
@@ -225,12 +227,12 @@ create table public.claude_analyses (
   output_tokens  integer,
   created_at     timestamptz not null default now()
 );
-create index claude_analyses_account_created_idx on public.claude_analyses(account_id, created_at desc);
+create index if not exists claude_analyses_account_created_idx on public.claude_analyses(account_id, created_at desc);
 
 -- ---------------------------------------------------------------------------
 -- strategy_recommendations — DATA / INTERPRETATION / HYPOTHESIS / RECOMMENDATION
 -- ---------------------------------------------------------------------------
-create table public.strategy_recommendations (
+create table if not exists public.strategy_recommendations (
   id              uuid primary key default gen_random_uuid(),
   account_id      uuid not null references public.instagram_accounts(id) on delete cascade,
   insight_key     text not null,                -- deterministic id, e.g. hook:tiempo:medianSharesPer1k
@@ -250,12 +252,12 @@ create table public.strategy_recommendations (
   created_at      timestamptz not null default now(),
   unique (account_id, insight_key, period_from, period_to)
 );
-create index strategy_recommendations_account_idx on public.strategy_recommendations(account_id, created_at desc);
+create index if not exists strategy_recommendations_account_idx on public.strategy_recommendations(account_id, created_at desc);
 
 -- ---------------------------------------------------------------------------
 -- experiments & experiment_results
 -- ---------------------------------------------------------------------------
-create table public.experiments (
+create table if not exists public.experiments (
   id                   uuid primary key default gen_random_uuid(),
   account_id           uuid not null references public.instagram_accounts(id) on delete cascade,
   name                 text not null,
@@ -276,12 +278,12 @@ create table public.experiments (
   updated_at           timestamptz not null default now(),
   check (end_date >= start_date)
 );
-create index experiments_account_status_idx on public.experiments(account_id, status);
-create trigger experiments_updated_at before update on public.experiments
+create index if not exists experiments_account_status_idx on public.experiments(account_id, status);
+create or replace trigger experiments_updated_at before update on public.experiments
   for each row execute function public.set_updated_at();
 
 -- Posts that belong to an experiment (test or control arm) and measured values.
-create table public.experiment_results (
+create table if not exists public.experiment_results (
   id             uuid primary key default gen_random_uuid(),
   experiment_id  uuid not null references public.experiments(id) on delete cascade,
   post_id        uuid references public.posts(id) on delete set null,
@@ -291,7 +293,7 @@ create table public.experiment_results (
   notes          text,
   unique (experiment_id, post_id)
 );
-create index experiment_results_experiment_idx on public.experiment_results(experiment_id);
+create index if not exists experiment_results_experiment_idx on public.experiment_results(experiment_id);
 
 -- ---------------------------------------------------------------------------
 -- Row Level Security: enabled everywhere, no public policies. The app talks

@@ -31,6 +31,8 @@ Comprobaciones: `npm run check` (typecheck + lint + tests) · `npm run build`.
 
 1. Crea un proyecto en <https://supabase.com> (región UE, p. ej. Frankfurt). Guarda la contraseña de la base de datos.
 2. **SQL Editor → New query** → pega todo el contenido de `supabase/setup.sql` (tablas + categorías en un solo archivo) → **Run**.
+   Se puede ejecutar más de una vez: crea solo lo que falta, nunca borra ni sobrescribe datos y va en una transacción (todo o nada). Si una tabla con el mismo nombre no es de Ayala OS, se detiene sin cambiar nada.
+   Para ver el estado sin tocar nada: pega `supabase/check.sql` → **Run** (una fila por tabla: OK / FALTA / DISTINTA / AJENA, con nº de filas).
 3. Botón **Connect** (arriba) → **Transaction pooler** → copia la cadena `postgresql://…:6543/postgres`, sustituye `[YOUR-PASSWORD]` y úsala como `DATABASE_URL`.
 4. Pon `DATA_SOURCE=supabase`.
 

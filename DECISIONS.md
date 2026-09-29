@@ -47,3 +47,5 @@ Formato: contexto → decisión → consecuencia.
 **D-022 Cron fuera de la contraseña.** `/api/cron/sync` se excluye del Basic auth y exige `Authorization: Bearer CRON_SECRET` (lo envía Vercel Cron).
 
 **D-023 Stories fuera de alcance.** Solo 24 h y sin webhook de insights con Instagram Login.
+
+**D-024 Setup SQL idempotente.** La migración usa `if not exists` / `or replace`; `setup.sql` va en una transacción con una guarda que aborta si una tabla homónima no es nuestra. Motivo: re-ejecutar el script en el SQL Editor fallaba con `relation "users" already exists`. Nunca se hace DROP automático.
