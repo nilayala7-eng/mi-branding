@@ -25,6 +25,12 @@
 - **No probado todavía:** llamadas reales a Instagram (requiere tu app de Meta y tu cuenta).
 - Pendiente de confirmar con datos reales: mapeo follows/unfollows, VIDEO = Reel, unidad de `ig_reels_avg_watch_time`.
 
+## Puesta en marcha
+- [x] Supabase: esquema + taxonomía aplicados con `supabase/setup.sql` (check.sql: todo OK).
+- [x] Variables de entorno en Vercel.
+- [ ] Primer deploy de producción en Vercel.
+- [ ] App de Meta + conectar Instagram (META_SETUP.md).
+
 ## Fase 3 — Inteligencia
 - [ ] Clasificador con Claude (structured outputs) + revisión humana.
 - [ ] Editor de taxonomía en Settings; caché de thumbnails en Supabase Storage.
