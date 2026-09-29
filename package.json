@@ -13,7 +13,8 @@
     "check": "npm run typecheck && npm run lint && npm run test",
     "mcp": "tsx mcp/server.ts",
     "db:seed:generate": "tsx scripts/generate-seed.ts",
-    "test:db": "TEST_DATABASE_URL=${TEST_DATABASE_URL:?set TEST_DATABASE_URL (database will be wiped)} vitest run src/lib/data/postgres"
+    "test:db": "TEST_DATABASE_URL=${TEST_DATABASE_URL:?set TEST_DATABASE_URL (database will be wiped)} vitest run src/lib/data/postgres",
+    "ig": "tsx scripts/ig.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.129.0",
