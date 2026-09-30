@@ -1,7 +1,7 @@
 // Genera el carrusel "Así se ven 100 calorías" (1080×1350, 4:5) en PNG.
 // Fotos a sangre ocupando toda la slide y texto mínimo encima.
 // Uso: python3 content/carruseles/100-calorias/editar_fotos.py && node content/carruseles/100-calorias/generar.mjs
-// Estilo: DESIGN.md (Carbón, Verde Bosque; Sora + Inter).
+// Estilo: colores Ayala Fitness (navy #0B1E3D / #14315C, crema #F7F9FC, dorado #B08A3E); Sora + Inter.
 import { chromium } from "playwright-core";
 import { mkdirSync, existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -38,13 +38,14 @@ const comparisons = [
 const css = `
 @font-face { font-family: Sora; src: url(${font("sora", "sora-latin-wght-normal.woff2")}) format("woff2"); font-weight: 100 800; }
 @font-face { font-family: Inter; src: url(${font("inter", "inter-latin-wght-normal.woff2")}) format("woff2"); font-weight: 100 900; }
-:root { --ink:#1B1C1E; --ink-soft:#57574F; --green-deep:#0A6E42; --bg:#FAF8F3; }
+/* Paleta Ayala Fitness: navy principal, navy secundario, crema y dorado */
+:root { --ink:#0B1E3D; --ink-soft:#14315C; --gold:#B08A3E; --bg:#F7F9FC; }
 * { box-sizing:border-box; margin:0; padding:0; }
 html,body { width:1080px; height:1350px; background:var(--bg); }
 body { color:var(--ink); font-family:Inter,sans-serif; -webkit-font-smoothing:antialiased; }
 .slide { position:relative; width:1080px; height:1350px; overflow:hidden; }
 .bg { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
-.brand { position:absolute; left:72px; bottom:40px; font:500 19px/1 Inter; letter-spacing:.22em; text-transform:uppercase; color:rgba(27,28,30,.38); }
+.brand { position:absolute; left:72px; bottom:40px; font:500 19px/1 Inter; letter-spacing:.22em; text-transform:uppercase; color:rgba(11,30,61,.38); }
 
 /* Comparativa: dos fotos a sangre, una encima de otra */
 .half { position:absolute; left:0; width:1080px; height:675px; overflow:hidden; }
@@ -54,23 +55,23 @@ body { color:var(--ink); font-family:Inter,sans-serif; -webkit-font-smoothing:an
 .half.b .txt { top:92px; }
 .name { font:600 23px/1 Inter; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); }
 .amt { font:700 150px/.92 Sora; letter-spacing:-.05em; margin-top:18px; }
-.half.b .amt { color:var(--green-deep); }
+.half.b .amt { color:var(--gold); }
 .sub { font:500 26px/1.2 Inter; color:var(--ink-soft); margin-top:16px; }
-.seam { position:absolute; left:50%; top:675px; transform:translate(-50%,-50%); background:var(--ink); color:#fff; font:700 30px/1 Sora; letter-spacing:-.01em; padding:20px 34px; border-radius:999px; box-shadow:0 10px 30px rgba(27,28,30,.18); white-space:nowrap; }
-.divider { position:absolute; left:0; right:0; top:675px; height:1px; background:rgba(27,28,30,.08); }
+.seam { position:absolute; left:50%; top:675px; transform:translate(-50%,-50%); background:var(--ink); color:#fff; font:700 30px/1 Sora; letter-spacing:-.01em; padding:20px 34px; border-radius:999px; box-shadow:0 10px 30px rgba(11,30,61,.18); white-space:nowrap; }
+.divider { position:absolute; left:0; right:0; top:675px; height:1px; background:rgba(11,30,61,.08); }
 
 /* Portada */
 .cover .head { position:absolute; left:72px; top:92px; }
 .cover .l1 { font:700 88px/1 Sora; letter-spacing:-.04em; }
-.cover .l2 { font:800 236px/.86 Sora; letter-spacing:-.06em; color:var(--green-deep); margin-top:10px; }
+.cover .l2 { font:800 236px/.86 Sora; letter-spacing:-.06em; color:var(--gold); margin-top:10px; }
 .cover .l3 { font:400 32px/1.35 Inter; color:var(--ink-soft); margin-top:30px; }
 
 /* Resumen y CTA */
 .msg .head { position:absolute; left:72px; right:72px; top:96px; }
 .msg h2 { font:700 96px/1.02 Sora; letter-spacing:-.045em; }
-.msg h2 em { font-style:normal; color:var(--green-deep); }
+.msg h2 em { font-style:normal; color:var(--gold); }
 .msg p { font:400 32px/1.45 Inter; color:var(--ink-soft); margin-top:30px; max-width:780px; }
-.msg .cta { display:inline-block; margin-top:40px; background:var(--green-deep); color:#fff; font:600 30px/1 Inter; padding:26px 40px; border-radius:999px; }
+.msg .cta { display:inline-block; margin-top:40px; background:var(--ink); color:#fff; font:600 30px/1 Inter; padding:26px 40px; border-radius:999px; }
 `;
 
 const page = (body, cls = "") =>
