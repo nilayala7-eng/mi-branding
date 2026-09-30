@@ -17,7 +17,7 @@ Cantidades aproximadas (tablas BEDCA/USDA, redondeadas).
 
 **Regenerar:** `node content/carruseles/100-calorias/generar.mjs` (requiere `npm ci`).
 
-**Fotos reales:** mete fotos en `fotos/` con estos nombres (jpg, png o webp) y vuelve a generar. Cada foto sustituye a su ilustración: `aceite`, `fresas`, `almendras`, `manzana`, `chocolate`, `sandia`, `refresco`, `palomitas`, `pollo`, `claras`.
+**Fotos reales:** las originales van en `fotos/` (`aceite`, `fresas`, `almendras`, `manzana`, `chocolate`, `sandia`, `refresco`, `palomitas`, `pollo`, `claras`). `python3 content/carruseles/100-calorias/editar_fotos.py` (pillow + numpy) las encuadra en `fotos/editadas/` —ración densa pequeña, ración ligera llenando el panel— y quita 2 cáscaras a las claras (8 → 6). Después, `generar.mjs`.
 
 **Pendiente:** slides con fotos de Nil y texto encima al estilo del post de referencia.
 

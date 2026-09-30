@@ -18,15 +18,20 @@ const font = (pkg, file) =>
 
 const HANDLE = "@ayala.fit_";
 
-// Si existe fotos/<alimento>.(jpg|jpeg|png|webp), se usa la foto real en lugar de la ilustración.
+// Fotos: primero fotos/editadas/<alimento>[-tile].jpg (salida de editar_fotos.py), luego fotos/<alimento>.*;
+// si no hay foto, se usa la ilustración SVG.
 const MIME = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp" };
-const art = (food) => {
-  for (const ext of Object.keys(MIME)) {
-    const file = join(here, "fotos", `${food}.${ext}`);
-    if (existsSync(file))
-      return `<img class="photo" src="data:${MIME[ext]};base64,${readFileSync(file).toString("base64")}" alt="">`;
-  }
-  return FOOD[food];
+const photo = (food, variant = "") => {
+  const candidates = [
+    join(here, "fotos", "editadas", `${food}${variant}.jpg`),
+    ...Object.keys(MIME).map((ext) => join(here, "fotos", `${food}.${ext}`)),
+  ];
+  const file = candidates.find(existsSync);
+  return file && `data:${MIME[file.split(".").pop()]};base64,${readFileSync(file).toString("base64")}`;
+};
+const art = (food, variant) => {
+  const src = photo(food, variant);
+  return src ? `<img class="photo" src="${src}" alt="">` : FOOD[food];
 };
 const TOTAL = 8;
 
@@ -34,8 +39,8 @@ const TOTAL = 8;
 const comparisons = [
   {
     kicker: "Grasas vs fruta",
-    left: { food: "aceite", amount: "11 g", label: "1 cucharada de aceite de oliva" },
-    right: { food: "fresas", amount: "310 g", label: "Un bol grande de fresas" },
+    left: { food: "aceite", amount: "11 g", label: "1 cucharada de aceite" },
+    right: { food: "fresas", amount: "310 g", label: "un bol lleno de fresas" },
     note: "El aceite es sano, pero muy denso. Mídelo con cuchara, no a ojo.",
   },
   {
@@ -47,19 +52,19 @@ const comparisons = [
   {
     kicker: "Algo dulce",
     left: { food: "chocolate", amount: "2", label: "onzas de chocolate 70% (≈17\u00a0g)" },
-    right: { food: "sandia", amount: "330 g", label: "2 tajadas de sandía" },
+    right: { food: "sandia", amount: "330 g", label: "una rodaja grande de sandía" },
     note: "El chocolate no se prohíbe. Se disfruta sabiendo cuánto es.",
   },
   {
     kicker: "Picoteo en el sofá",
-    left: { food: "refresco", amount: "240 ml", label: "de refresco azucarado" },
-    right: { food: "palomitas", amount: "3", label: "tazas de palomitas caseras sin aceite" },
+    left: { food: "refresco", amount: "240 ml", label: "un vaso de refresco" },
+    right: { food: "palomitas", amount: "3", label: "tazas de palomitas sin aceite" },
     note: "Las calorías bebidas casi no sacian. Mejor masticarlas.",
   },
   {
     kicker: "Proteína",
-    left: { food: "pollo", amount: "85 g", label: "de pechuga de pollo (≈20\u00a0g proteína)" },
-    right: { food: "claras", amount: "6", label: "claras de huevo (≈21\u00a0g proteína)" },
+    left: { food: "pollo", amount: "85 g", label: "de pechuga de pollo", tag: "≈20 g proteína" },
+    right: { food: "claras", amount: "6", label: "claras de huevo", tag: "≈21 g proteína" },
     note: "100 kcal de proteína magra te mantienen lleno durante horas.",
   },
 ];
@@ -95,27 +100,28 @@ body { background:var(--bg); color:var(--ink); font-family:Inter,system-ui,sans-
 .grid { margin-top:auto; margin-bottom:130px; display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
 .grid .tile { background:var(--surface); border:2px solid var(--border); border-radius:28px; height:268px; display:flex; align-items:center; justify-content:center; }
 .grid .tile svg { width:210px; height:210px; }
+.grid .tile { overflow:hidden; }
+.grid .tile img.photo { width:100%; height:100%; object-fit:cover; }
 .swipe { position:absolute; right:80px; top:96px; font:600 24px/1 Inter; color:var(--ink); background:var(--surface); border:2px solid var(--border); padding:16px 22px; border-radius:999px; }
 
 /* Comparativa */
-.cmp h2 { font:700 72px/1.08 Sora; letter-spacing:-.03em; margin-top:26px; position:relative; z-index:0; }
-.pair { position:relative; display:grid; grid-template-columns:1fr 1fr; gap:28px; margin-top:54px; }
-.card { border-radius:32px; padding:36px 34px 40px; display:flex; flex-direction:column; min-height:720px; }
-.card.a { background:var(--surface); border:2px solid var(--border); }
-.card.b { background:var(--green-tint); border:2px solid #CDEBDA; }
-.card .art { height:360px; display:flex; align-items:center; justify-content:center; }
-.card .art svg { width:340px; height:340px; }
-.card .art img.photo { width:100%; height:100%; object-fit:cover; border-radius:22px; }
-.grid .tile { overflow:hidden; }
-.grid .tile img.photo { width:100%; height:100%; object-fit:cover; }
-.card .amt { font:700 104px/1 Sora; letter-spacing:-.04em; margin-top:18px; }
-.card.b .amt { color:var(--green-deep); }
-.card .lbl { font:500 31px/1.3 Inter; color:var(--ink); margin-top:14px; }
-.card .tag { align-self:flex-start; font:600 22px/1 Inter; padding:12px 18px; border-radius:999px; background:var(--coral-tint); color:var(--coral-deep); letter-spacing:.02em; }
-.card.b .tag { background:#fff; color:var(--green-deep); }
-.eq { position:absolute; left:50%; top:318px; transform:translate(-50%,0); width:92px; height:92px; border-radius:50%; background:var(--ink); color:#fff; display:flex; align-items:center; justify-content:center; font:700 44px/1 Sora; border:8px solid var(--bg); }
-.note { margin-top:34px; display:flex; gap:18px; align-items:flex-start; font:400 30px/1.45 Inter; color:var(--ink-soft); }
-.note svg { flex:none; width:40px; height:40px; margin-top:2px; }
+.cmp h2 { font:700 68px/1.08 Sora; letter-spacing:-.03em; margin-top:22px; position:relative; z-index:0; }
+.stack { position:relative; display:flex; flex-direction:column; gap:30px; margin-top:40px; }
+.panel { position:relative; height:410px; border-radius:30px; overflow:hidden; background:var(--surface); }
+.panel.a { box-shadow:0 0 0 3px var(--coral-tint); }
+.panel.b { box-shadow:0 0 0 3px #CDEBDA; }
+.panel > img.photo { width:100%; height:100%; object-fit:cover; display:block; }
+.panel > svg { position:absolute; left:50%; top:50%; width:300px; height:300px; transform:translate(-50%,-50%); }
+.panel .tag { position:absolute; left:24px; top:24px; font:600 22px/1 Inter; padding:12px 18px; border-radius:999px; background:var(--coral-tint); color:var(--coral-deep); }
+.panel.b .tag { background:var(--green-tint); color:var(--green-deep); }
+.panel .kcal { position:absolute; right:24px; top:24px; font:700 24px/1 Sora; padding:12px 18px; border-radius:999px; background:var(--ink); color:#fff; }
+.panel .info { position:absolute; left:24px; bottom:24px; background:rgba(255,255,255,.92); border-radius:22px; padding:18px 24px 20px; max-width:380px; box-shadow:0 6px 24px rgba(27,28,30,.08); }
+.panel .amt { font:700 64px/1 Sora; letter-spacing:-.04em; }
+.panel.b .amt { color:var(--green-deep); }
+.panel .lbl { font:500 25px/1.25 Inter; color:var(--ink); margin-top:6px; }
+.eq { position:absolute; left:50%; top:410px; transform:translate(-50%,-50%); width:84px; height:84px; border-radius:50%; background:var(--ink); color:#fff; display:flex; align-items:center; justify-content:center; font:700 40px/1 Sora; border:8px solid var(--bg); z-index:2; margin-top:15px; }
+.note { margin-top:30px; display:flex; gap:16px; align-items:flex-start; font:400 28px/1.4 Inter; color:var(--ink-soft); }
+.note svg { flex:none; width:38px; height:38px; margin-top:1px; }
 
 /* Resumen */
 .sum h2 { font:700 84px/1.06 Sora; letter-spacing:-.03em; margin-top:30px; position:relative; z-index:0; }
@@ -158,20 +164,21 @@ slides.push(
      <span class="swipe">Desliza →</span>
      <h1 class="display">Así se ven <span class="num hl hl-g">100</span><br>calorías</h1>
      <p class="sub">Mismas calorías, volumen muy distinto. Saber esto te ayuda a comer tranquilo, sin contar cada bocado.</p>
-     <div class="grid">${["aceite", "fresas", "almendras", "manzana", "chocolate", "sandia"].map((f) => `<div class="tile">${art(f)}</div>`).join("")}</div>
+     <div class="grid">${["aceite", "fresas", "almendras", "manzana", "chocolate", "sandia"].map((f) => `<div class="tile">${art(f, "-tile")}</div>`).join("")}</div>
      ${footer(1)}`,
     "cover",
   ),
 );
 
 comparisons.forEach((c, i) => {
-  const card = (side, cls, tag) =>
-    `<div class="card ${cls}"><span class="tag">${tag}</span><div class="art">${art(side.food)}</div><div class="amt">${side.amount}</div><div class="lbl">${side.label}</div></div>`;
+  const panel = (side, cls, tag) =>
+    `<div class="panel ${cls}">${art(side.food)}<span class="tag">${side.tag ?? tag}</span><span class="kcal">100 kcal</span>
+       <div class="info"><div class="amt">${side.amount}</div><div class="lbl">${side.label}</div></div></div>`;
   slides.push(
     page(
       `<span class="kicker">${c.kicker}</span>
-       <h2>100 kcal <span class="hl">son…</span></h2>
-       <div class="pair">${card(c.left, "a", "Poco volumen")}${card(c.right, "b", "Mucho volumen")}<div class="eq">=</div></div>
+       <h2>Mismas <span class="hl">100 kcal</span></h2>
+       <div class="stack">${panel(c.left, "a", "Poco volumen")}${panel(c.right, "b", "Mucho volumen")}<div class="eq">=</div></div>
        <div class="note">${bulb}<span>${c.note}</span></div>
        ${footer(i + 2)}`,
       "cmp",
