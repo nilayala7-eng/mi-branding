@@ -1,25 +1,30 @@
 # Carrusel — "Así se ven 100 calorías"
 
-8 slides 1080×1350 (4:5) en `png/`, con el estilo de `DESIGN.md`. Ilustraciones propias en SVG (`ilustraciones.mjs`).
+8 slides 1080×1350 (4:5) en `png/`. Fotos a sangre ocupando toda la slide, texto mínimo encima y marca discreta (`ayala.fit` abajo a la izquierda).
 
 | # | Slide |
 |---|---|
-| 1 | Portada: "Así se ven 100 calorías" |
-| 2 | 11 g de aceite = 310 g de fresas |
-| 3 | 14 almendras = 1 manzana grande |
-| 4 | 2 onzas de chocolate 70% = 330 g de sandía |
-| 5 | 240 ml de refresco = 3 tazas de palomitas sin aceite |
-| 6 | 85 g de pechuga de pollo = 6 claras |
-| 7 | Resumen: no va de prohibir, va de elegir |
-| 8 | CTA → link en bio (landing) |
+| 1 | Portada: "Así se ven 100 kcal" |
+| 2 | 11 g de aceite / 310 g de fresas |
+| 3 | 14 almendras / 1 manzana grande |
+| 4 | 17 g de chocolate 70% / 330 g de sandía |
+| 5 | 240 ml de refresco / 3 tazas de palomitas |
+| 6 | 85 g de pollo / 6 claras (≈20 g de proteína cada uno) |
+| 7 | No va de prohibir. Va de elegir. |
+| 8 | CTA → link en bio |
 
 Cantidades aproximadas (tablas BEDCA/USDA, redondeadas).
 
-**Regenerar:** `node content/carruseles/100-calorias/generar.mjs` (requiere `npm ci`).
+**Regenerar** (requiere `npm ci`, y pillow + numpy):
 
-**Fotos reales:** las originales van en `fotos/` (`aceite`, `fresas`, `almendras`, `manzana`, `chocolate`, `sandia`, `refresco`, `palomitas`, `pollo`, `claras`). `python3 content/carruseles/100-calorias/editar_fotos.py` (pillow + numpy) las encuadra en `fotos/editadas/` —ración densa pequeña, ración ligera llenando el panel— y quita 2 cáscaras a las claras (8 → 6). Después, `generar.mjs`.
+```bash
+python3 content/carruseles/100-calorias/editar_fotos.py   # fotos/ → fotos/editadas/
+node content/carruseles/100-calorias/generar.mjs          # → png/
+```
 
-**Pendiente:** slides con fotos de Nil y texto encima al estilo del post de referencia.
+`editar_fotos.py` encuadra cada foto (la ración densa pequeña con aire, la ligera llenando su mitad), amplía el fondo cuando hace falta y quita 2 cáscaras a las claras (8 → 6).
+
+**Pendiente:** slides con fotos de Nil y texto encima.
 
 ## Pie de post
 

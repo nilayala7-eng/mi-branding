@@ -1,222 +1,107 @@
 // Genera el carrusel "Así se ven 100 calorías" (1080×1350, 4:5) en PNG.
-// Uso: node content/carruseles/100-calorias/generar.mjs
-// Estilo: DESIGN.md (Blanco Cálido, Carbón, Verde Vital, Coral; Sora + Inter).
+// Fotos a sangre ocupando toda la slide y texto mínimo encima.
+// Uso: python3 content/carruseles/100-calorias/editar_fotos.py && node content/carruseles/100-calorias/generar.mjs
+// Estilo: DESIGN.md (Carbón, Verde Bosque; Sora + Inter).
 import { chromium } from "playwright-core";
 import { mkdirSync, existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { FOOD } from "./ilustraciones.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "../../..");
 const out = join(here, "png");
 mkdirSync(out, { recursive: true });
 
-// Fuentes embebidas: setContent() no puede cargar file:// desde about:blank.
+// Fuentes y fotos embebidas: setContent() no puede cargar file:// desde about:blank.
 const font = (pkg, file) =>
   `data:font/woff2;base64,${readFileSync(join(root, "node_modules/@fontsource-variable", pkg, "files", file)).toString("base64")}`;
-
-const HANDLE = "@ayala.fit_";
-
-// Fotos: primero fotos/editadas/<alimento>[-tile].jpg (salida de editar_fotos.py), luego fotos/<alimento>.*;
-// si no hay foto, se usa la ilustración SVG.
-const MIME = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp" };
-const photo = (food, variant = "") => {
-  const candidates = [
-    join(here, "fotos", "editadas", `${food}${variant}.jpg`),
-    ...Object.keys(MIME).map((ext) => join(here, "fotos", `${food}.${ext}`)),
-  ];
-  const file = candidates.find(existsSync);
-  return file && `data:${MIME[file.split(".").pop()]};base64,${readFileSync(file).toString("base64")}`;
+const img = (name) => {
+  const file = join(here, "fotos", "editadas", `${name}.jpg`);
+  if (!existsSync(file)) throw new Error(`Falta ${file}: ejecuta primero editar_fotos.py`);
+  return `data:image/jpeg;base64,${readFileSync(file).toString("base64")}`;
 };
-const art = (food, variant) => {
-  const src = photo(food, variant);
-  return src ? `<img class="photo" src="${src}" alt="">` : FOOD[food];
-};
-const TOTAL = 8;
+
+const BRAND = "ayala.fit";
 
 // Kcal aproximadas (tablas BEDCA/USDA, valores redondeados).
 const comparisons = [
+  { top: { food: "aceite", amount: "11 g", name: "Aceite de oliva" }, bottom: { food: "fresas", amount: "310 g", name: "Fresas" } },
+  { top: { food: "almendras", amount: "14", name: "Almendras" }, bottom: { food: "manzana", amount: "1", name: "Manzana grande" } },
+  { top: { food: "chocolate", amount: "17 g", name: "Chocolate 70%" }, bottom: { food: "sandia", amount: "330 g", name: "Sandía" } },
+  { top: { food: "refresco", amount: "240 ml", name: "Refresco" }, bottom: { food: "palomitas", amount: "3", name: "Tazas de palomitas" } },
   {
-    kicker: "Grasas vs fruta",
-    left: { food: "aceite", amount: "11 g", label: "1 cucharada de aceite" },
-    right: { food: "fresas", amount: "310 g", label: "un bol lleno de fresas" },
-    note: "El aceite es sano, pero muy denso. Mídelo con cuchara, no a ojo.",
-  },
-  {
-    kicker: "Snack de media tarde",
-    left: { food: "almendras", amount: "14", label: "almendras (≈17\u00a0g)" },
-    right: { food: "manzana", amount: "1", label: "manzana grande (≈190\u00a0g)" },
-    note: "Las dos valen. Una te sacia más si llegas con hambre.",
-  },
-  {
-    kicker: "Algo dulce",
-    left: { food: "chocolate", amount: "2", label: "onzas de chocolate 70% (≈17\u00a0g)" },
-    right: { food: "sandia", amount: "330 g", label: "una rodaja grande de sandía" },
-    note: "El chocolate no se prohíbe. Se disfruta sabiendo cuánto es.",
-  },
-  {
-    kicker: "Picoteo en el sofá",
-    left: { food: "refresco", amount: "240 ml", label: "un vaso de refresco" },
-    right: { food: "palomitas", amount: "3", label: "tazas de palomitas sin aceite" },
-    note: "Las calorías bebidas casi no sacian. Mejor masticarlas.",
-  },
-  {
-    kicker: "Proteína",
-    left: { food: "pollo", amount: "85 g", label: "de pechuga de pollo", tag: "≈20 g proteína" },
-    right: { food: "claras", amount: "6", label: "claras de huevo", tag: "≈21 g proteína" },
-    note: "100 kcal de proteína magra te mantienen lleno durante horas.",
+    top: { food: "pollo", amount: "85 g", name: "Pechuga de pollo", sub: "≈ 20 g de proteína" },
+    bottom: { food: "claras", amount: "6", name: "Claras de huevo", sub: "≈ 21 g de proteína" },
   },
 ];
 
 const css = `
 @font-face { font-family: Sora; src: url(${font("sora", "sora-latin-wght-normal.woff2")}) format("woff2"); font-weight: 100 800; }
-@font-face { font-family: Sora; src: url(${font("sora", "sora-latin-ext-wght-normal.woff2")}) format("woff2"); font-weight: 100 800; unicode-range: U+0100-024F; }
 @font-face { font-family: Inter; src: url(${font("inter", "inter-latin-wght-normal.woff2")}) format("woff2"); font-weight: 100 900; }
-:root {
-  --bg:#FAF8F3; --surface:#FFFFFF; --border:#E7E3D9; --ink:#1B1C1E; --ink-soft:#57574F;
-  --green:#12B76A; --green-deep:#0A6E42; --coral:#F2765C; --coral-deep:#B23A22;
-  --green-tint:#E8F6EE; --coral-tint:#FDEDE8;
-}
+:root { --ink:#1B1C1E; --ink-soft:#57574F; --green-deep:#0A6E42; --bg:#FAF8F3; }
 * { box-sizing:border-box; margin:0; padding:0; }
-html,body { width:1080px; height:1350px; }
-body { background:var(--bg); color:var(--ink); font-family:Inter,system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
-.slide { position:relative; width:1080px; height:1350px; padding:88px 80px 0; overflow:hidden; display:flex; flex-direction:column; }
-.display { font-family:Sora,sans-serif; }
-.kicker { display:inline-flex; align-items:center; gap:14px; font:600 26px/1 Inter; letter-spacing:.14em; text-transform:uppercase; color:var(--green-deep); }
-.kicker::before { content:""; width:36px; height:4px; border-radius:2px; background:var(--green); }
-.hl { position:relative; white-space:nowrap; }
-.hl::after { content:""; position:absolute; left:-4px; right:-4px; bottom:6px; height:22px; background:var(--coral); opacity:.45; border-radius:6px; z-index:-1; }
-.hl-g::after { background:var(--green); opacity:.35; }
-.footer { position:absolute; left:80px; right:80px; bottom:56px; display:flex; justify-content:space-between; align-items:center; font:500 24px/1 Inter; color:var(--ink-soft); }
-.dots { display:flex; gap:10px; }
-.dots i { width:10px; height:10px; border-radius:50%; background:var(--border); }
-.dots i.on { background:var(--green); width:30px; border-radius:5px; }
+html,body { width:1080px; height:1350px; background:var(--bg); }
+body { color:var(--ink); font-family:Inter,sans-serif; -webkit-font-smoothing:antialiased; }
+.slide { position:relative; width:1080px; height:1350px; overflow:hidden; }
+.bg { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.brand { position:absolute; left:72px; bottom:40px; font:500 19px/1 Inter; letter-spacing:.22em; text-transform:uppercase; color:rgba(27,28,30,.38); }
+
+/* Comparativa: dos fotos a sangre, una encima de otra */
+.half { position:absolute; left:0; width:1080px; height:675px; overflow:hidden; }
+.half.t { top:0; } .half.b { top:675px; }
+.half img { width:100%; height:100%; object-fit:cover; display:block; }
+.half .txt { position:absolute; left:72px; top:64px; }
+.half.b .txt { top:92px; }
+.name { font:600 23px/1 Inter; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); }
+.amt { font:700 150px/.92 Sora; letter-spacing:-.05em; margin-top:18px; }
+.half.b .amt { color:var(--green-deep); }
+.sub { font:500 26px/1.2 Inter; color:var(--ink-soft); margin-top:16px; }
+.seam { position:absolute; left:50%; top:675px; transform:translate(-50%,-50%); background:var(--ink); color:#fff; font:700 30px/1 Sora; letter-spacing:-.01em; padding:20px 34px; border-radius:999px; box-shadow:0 10px 30px rgba(27,28,30,.18); white-space:nowrap; }
+.divider { position:absolute; left:0; right:0; top:675px; height:1px; background:rgba(27,28,30,.08); }
 
 /* Portada */
-.cover h1 { font:700 118px/1.02 Sora; letter-spacing:-.035em; margin-top:40px; position:relative; z-index:0; }
-.cover h1 .num { color:var(--green-deep); }
-.cover p.sub { font:400 36px/1.4 Inter; color:var(--ink-soft); margin-top:34px; max-width:820px; }
-.grid { margin-top:auto; margin-bottom:130px; display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
-.grid .tile { background:var(--surface); border:2px solid var(--border); border-radius:28px; height:268px; display:flex; align-items:center; justify-content:center; }
-.grid .tile svg { width:210px; height:210px; }
-.grid .tile { overflow:hidden; }
-.grid .tile img.photo { width:100%; height:100%; object-fit:cover; }
-.swipe { position:absolute; right:80px; top:96px; font:600 24px/1 Inter; color:var(--ink); background:var(--surface); border:2px solid var(--border); padding:16px 22px; border-radius:999px; }
+.cover .head { position:absolute; left:72px; top:92px; }
+.cover .l1 { font:700 88px/1 Sora; letter-spacing:-.04em; }
+.cover .l2 { font:800 236px/.86 Sora; letter-spacing:-.06em; color:var(--green-deep); margin-top:10px; }
+.cover .l3 { font:400 32px/1.35 Inter; color:var(--ink-soft); margin-top:30px; }
 
-/* Comparativa */
-.cmp h2 { font:700 68px/1.08 Sora; letter-spacing:-.03em; margin-top:22px; position:relative; z-index:0; }
-.stack { position:relative; display:flex; flex-direction:column; gap:30px; margin-top:40px; }
-.panel { position:relative; height:410px; border-radius:30px; overflow:hidden; background:var(--surface); }
-.panel.a { box-shadow:0 0 0 3px var(--coral-tint); }
-.panel.b { box-shadow:0 0 0 3px #CDEBDA; }
-.panel > img.photo { width:100%; height:100%; object-fit:cover; display:block; }
-.panel > svg { position:absolute; left:50%; top:50%; width:300px; height:300px; transform:translate(-50%,-50%); }
-.panel .tag { position:absolute; left:24px; top:24px; font:600 22px/1 Inter; padding:12px 18px; border-radius:999px; background:var(--coral-tint); color:var(--coral-deep); }
-.panel.b .tag { background:var(--green-tint); color:var(--green-deep); }
-.panel .kcal { position:absolute; right:24px; top:24px; font:700 24px/1 Sora; padding:12px 18px; border-radius:999px; background:var(--ink); color:#fff; }
-.panel .info { position:absolute; left:24px; bottom:24px; background:rgba(255,255,255,.92); border-radius:22px; padding:18px 24px 20px; max-width:380px; box-shadow:0 6px 24px rgba(27,28,30,.08); }
-.panel .amt { font:700 64px/1 Sora; letter-spacing:-.04em; }
-.panel.b .amt { color:var(--green-deep); }
-.panel .lbl { font:500 25px/1.25 Inter; color:var(--ink); margin-top:6px; }
-.eq { position:absolute; left:50%; top:410px; transform:translate(-50%,-50%); width:84px; height:84px; border-radius:50%; background:var(--ink); color:#fff; display:flex; align-items:center; justify-content:center; font:700 40px/1 Sora; border:8px solid var(--bg); z-index:2; margin-top:15px; }
-.note { margin-top:30px; display:flex; gap:16px; align-items:flex-start; font:400 28px/1.4 Inter; color:var(--ink-soft); }
-.note svg { flex:none; width:38px; height:38px; margin-top:1px; }
-
-/* Resumen */
-.sum h2 { font:700 84px/1.06 Sora; letter-spacing:-.03em; margin-top:30px; position:relative; z-index:0; }
-.sum ul { list-style:none; margin-top:80px; display:flex; flex-direction:column; gap:32px; }
-.sum li { background:var(--surface); border:2px solid var(--border); border-radius:28px; padding:48px 40px; display:flex; gap:26px; align-items:flex-start; }
-.sum li svg { flex:none; width:52px; height:52px; }
-.sum li b { display:block; font:600 40px/1.2 Sora; }
-.sum li span { display:block; font:400 32px/1.4 Inter; color:var(--ink-soft); margin-top:8px; }
-
-/* CTA */
-.cta { background:var(--ink); color:#fff; }
-.cta .kicker { color:#7FE0AE; }
-.cta h2 { font:700 92px/1.05 Sora; letter-spacing:-.03em; margin-top:34px; }
-.cta h2 em { font-style:normal; color:#7FE0AE; }
-.cta p { font:400 34px/1.45 Inter; color:#CFCFC8; margin-top:34px; max-width:860px; }
-.cta .checks { margin-top:54px; display:flex; flex-direction:column; gap:22px; font:500 32px/1.3 Inter; }
-.cta .checks div { display:flex; gap:18px; align-items:center; }
-.cta .checks svg { width:40px; height:40px; flex:none; }
-.cta .btn { margin-top:auto; margin-bottom:150px; align-self:flex-start; background:var(--green-deep); color:#fff; font:600 38px/1 Inter; padding:34px 48px; border-radius:20px; display:flex; gap:18px; align-items:center; }
-.cta .footer { color:#9A9A92; }
-.cta .dots i { background:#3A3B3E; }
-.cta .dots i.on { background:#7FE0AE; }
+/* Resumen y CTA */
+.msg .head { position:absolute; left:72px; right:72px; top:96px; }
+.msg h2 { font:700 96px/1.02 Sora; letter-spacing:-.045em; }
+.msg h2 em { font-style:normal; color:var(--green-deep); }
+.msg p { font:400 32px/1.45 Inter; color:var(--ink-soft); margin-top:30px; max-width:780px; }
+.msg .cta { display:inline-block; margin-top:40px; background:var(--green-deep); color:#fff; font:600 30px/1 Inter; padding:26px 40px; border-radius:999px; }
 `;
 
-const check = (bg = "#12B76A", fg = "#1B1C1E") =>
-  `<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="${bg}"/><path d="M12 20.5l5.5 5.5L28.5 14" fill="none" stroke="${fg}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-const bulb = `<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="#FDEDE8"/><path d="M20 10a7 7 0 0 0-4 12.7V25h8v-2.3A7 7 0 0 0 20 10zM17 28h6" fill="none" stroke="#B23A22" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-
-const footer = (n) =>
-  `<div class="footer"><span>${HANDLE}</span><div class="dots">${Array.from({ length: TOTAL }, (_, i) => `<i class="${i + 1 === n ? "on" : ""}"></i>`).join("")}</div></div>`;
-
 const page = (body, cls = "") =>
-  `<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head><body><div class="slide ${cls}">${body}</div></body></html>`;
+  `<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head><body><div class="slide ${cls}">${body}<div class="brand">${BRAND}</div></div></body></html>`;
 
-const slides = [];
+const half = (side, pos) =>
+  `<div class="half ${pos}"><img src="${img(side.food)}" alt=""><div class="txt"><div class="name">${side.name}</div><div class="amt">${side.amount}</div>${side.sub ? `<div class="sub">${side.sub}</div>` : ""}</div></div>`;
 
-slides.push(
+const slides = [
   page(
-    `<span class="kicker">Nutrición sin dramas</span>
-     <span class="swipe">Desliza →</span>
-     <h1 class="display">Así se ven <span class="num hl hl-g">100</span><br>calorías</h1>
-     <p class="sub">Mismas calorías, volumen muy distinto. Saber esto te ayuda a comer tranquilo, sin contar cada bocado.</p>
-     <div class="grid">${["aceite", "fresas", "almendras", "manzana", "chocolate", "sandia"].map((f) => `<div class="tile">${art(f, "-tile")}</div>`).join("")}</div>
-     ${footer(1)}`,
+    `<img class="bg" src="${img("portada")}" alt="">
+     <div class="head"><div class="l1">Así se ven</div><div class="l2">100 kcal</div><div class="l3">Mismas calorías. Muy distinto volumen.</div></div>`,
     "cover",
   ),
-);
-
-comparisons.forEach((c, i) => {
-  const panel = (side, cls, tag) =>
-    `<div class="panel ${cls}">${art(side.food)}<span class="tag">${side.tag ?? tag}</span><span class="kcal">100 kcal</span>
-       <div class="info"><div class="amt">${side.amount}</div><div class="lbl">${side.label}</div></div></div>`;
-  slides.push(
-    page(
-      `<span class="kicker">${c.kicker}</span>
-       <h2>Mismas <span class="hl">100 kcal</span></h2>
-       <div class="stack">${panel(c.left, "a", "Poco volumen")}${panel(c.right, "b", "Mucho volumen")}<div class="eq">=</div></div>
-       <div class="note">${bulb}<span>${c.note}</span></div>
-       ${footer(i + 2)}`,
-      "cmp",
-    ),
-  );
-});
-
-slides.push(
-  page(
-    `<span class="kicker">Lo que te llevas</span>
-     <h2>No va de prohibir.<br>Va de <span class="hl hl-g">elegir</span>.</h2>
-     <ul>
-       <li>${check()}<div><b>Llena el plato de volumen</b><span>Fruta y verdura: mucha cantidad, pocas calorías.</span></div></li>
-       <li>${check()}<div><b>Proteína en cada comida</b><span>Es lo que más sacia. Pollo, huevo, legumbre, yogur.</span></div></li>
-       <li>${check()}<div><b>Grasas sí, pero medidas</b><span>Aceite y frutos secos son sanos. Solo dales cuchara.</span></div></li>
-     </ul>
-     ${footer(7)}`,
-    "sum",
+  ...comparisons.map((c) =>
+    page(`${half(c.top, "t")}${half(c.bottom, "b")}<div class="divider"></div><div class="seam">100 kcal = 100 kcal</div>`),
   ),
-);
-
-slides.push(
   page(
-    `<span class="kicker">¿Empezamos juntos?</span>
-     <h2>Tu plan, a <em>tu ritmo</em>.</h2>
-     <p>Entreno + nutrición real, sin dietas imposibles. Te monto el plan y te acompaño.</p>
-     <div class="checks">
-       <div>${check("#7FE0AE")}Rutinas claras para tu semana</div>
-       <div>${check("#7FE0AE")}Comida sencilla, sin prohibiciones</div>
-       <div>${check("#7FE0AE")}Seguimiento cercano conmigo</div>
-     </div>
-     <div class="btn">Link en mi bio →</div>
-     ${footer(8)}`,
-    "cta",
+    `<img class="bg" src="${img("resumen")}" alt="">
+     <div class="head"><h2>No va de prohibir.<br>Va de <em>elegir</em>.</h2>
+     <p>Llena el plato de fruta, verdura y proteína. Las grasas, sí, pero medidas.</p></div>`,
+    "msg",
   ),
-);
-
-if (slides.length !== TOTAL) throw new Error(`Esperaba ${TOTAL} slides, hay ${slides.length}`);
+  page(
+    `<img class="bg" src="${img("cta")}" alt="">
+     <div class="head"><h2>Come más.<br>Sin contar <em>cada</em> caloría.</h2>
+     <p>Te monto un plan de entreno y nutrición a tu ritmo.</p>
+     <span class="cta">Link en mi bio</span></div>`,
+    "msg",
+  ),
+];
 
 const executablePath = ["/opt/pw-browsers/chromium", process.env.CHROMIUM_PATH].find((p) => p && existsSync(p));
 const browser = await chromium.launch(executablePath ? { executablePath } : {});

@@ -1,7 +1,8 @@
 """Edita las fotos de fotos/ y las deja en fotos/editadas/ listas para el carrusel.
 
-- Encuadre por alimento: la ración "densa" se ve pequeña con mucho aire alrededor
-  y la de "mucho volumen" llena el panel, para exagerar el contraste.
+- Comparativas: cada foto ocupa media slide a sangre. La ración "densa" se ve pequeña con
+  mucho aire alrededor y la de "mucho volumen" llena su mitad, para exagerar el contraste.
+- Portada, resumen y CTA: foto a sangre de slide completa.
 - El fondo se extiende replicando los bordes cuando el encuadre se sale de la foto.
 - Claras: se borran 2 cáscaras (8 → 6) para que cuadre con 100 kcal.
 
@@ -15,32 +16,29 @@ from PIL import Image, ImageDraw, ImageFilter
 HERE = Path(__file__).parent
 SRC = HERE / "fotos"
 OUT = SRC / "editadas"
-PANEL = (1840, 820)  # 2× el panel del carrusel (920×410)
-TILE = (540, 540)  # 2× la baldosa de portada
-SHIFT = 0.13  # el alimento se desplaza a la derecha para dejar sitio a la ficha de texto (abajo a la izquierda)
-
-# alimento: (centro x, centro y, alto del sujeto en px de la foto, fracción del panel que ocupa)
+HALF = (2160, 1350)  # 2× media slide (1080×675): comparativas a sangre, una foto arriba y otra abajo
+FULL = (2160, 2700)  # 2× slide completa (1080×1350)
+# alimento: (centro x, centro y, alto del sujeto en px de la foto, fracción de la media slide que ocupa,
+#            desplazamiento a la derecha como fracción del ancho; el texto vive arriba a la izquierda)
 FRAMING = {
-    "aceite": (600, 500, 310, 0.52),
-    "fresas": (515, 520, 560, 0.94),
-    "almendras": (510, 505, 390, 0.46),
-    "manzana": (515, 505, 470, 0.92),
-    "chocolate": (510, 495, 380, 0.46),
-    "sandia": (702, 385, 470, 0.93),
-    "refresco": (700, 368, 600, 0.78),
-    "palomitas": (705, 392, 490, 0.9),
-    "pollo": (700, 388, 555, 0.88),
-    "claras": (703, 360, 545, 0.88),
+    "aceite": (600, 500, 310, 0.40, 0.14),
+    "fresas": (515, 520, 560, 0.84, 0.21),
+    "almendras": (510, 505, 390, 0.40, 0.16),
+    "manzana": (515, 505, 470, 0.86, 0.18),
+    "chocolate": (510, 495, 380, 0.40, 0.16),
+    "sandia": (702, 385, 470, 0.74, 0.22),
+    "refresco": (700, 368, 600, 0.72, 0.22),
+    "palomitas": (705, 392, 490, 0.84, 0.21),
+    "pollo": (700, 388, 555, 0.86, 0.20),
+    "claras": (703, 360, 545, 0.84, 0.20),
 }
 
-# Para la portada: (centro x, centro y, lado del recorte cuadrado)
-TILE_CROP = {
-    "aceite": (560, 500, 620),
-    "fresas": (515, 520, 640),
-    "almendras": (510, 505, 560),
-    "manzana": (515, 505, 580),
-    "chocolate": (510, 495, 620),
-    "sandia": (702, 385, 600),
+# Slides a sangre completas: nombre → (foto, centro x, centro y, alto del sujeto, fracción, desplazamiento vertical)
+# desplazamiento > 0 baja el alimento para dejar el titular arriba.
+FULL_BLEED = {
+    "portada": ("fresas", 515, 520, 560, 0.46, 0.17),
+    "resumen": ("manzana", 515, 505, 470, 0.36, 0.20),
+    "cta": ("pollo", 700, 388, 555, 0.40, 0.18),
 }
 
 
@@ -112,17 +110,19 @@ def remove_shells(img: Image.Image) -> Image.Image:
 
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    for food, (cx, cy, subject, frac) in FRAMING.items():
+    fotos = {}
+    for food in FRAMING:
         img = Image.open(SRC / f"{food}.jpg").convert("RGB")
-        if food == "claras":
-            img = remove_shells(img)
+        fotos[food] = remove_shells(img) if food == "claras" else img
+    for food, (cx, cy, subject, frac, shift_x) in FRAMING.items():
         h = subject / frac
-        w = h * PANEL[0] / PANEL[1]
-        crop(img, cx - SHIFT * w, cy, w, h, PANEL).save(OUT / f"{food}.jpg", quality=92)
-        if food in TILE_CROP:
-            tx, ty, side = TILE_CROP[food]
-            crop(img, tx, ty, side, side, TILE).save(OUT / f"{food}-tile.jpg", quality=92)
-        print(food)
+        w = h * HALF[0] / HALF[1]
+        crop(fotos[food], cx - shift_x * w, cy, w, h, HALF).save(OUT / f"{food}.jpg", quality=92)
+    for name, (food, cx, cy, subject, frac, shift_y) in FULL_BLEED.items():
+        h = subject / frac
+        w = h * FULL[0] / FULL[1]
+        crop(fotos[food], cx, cy - shift_y * h, w, h, FULL).save(OUT / f"{name}.jpg", quality=92)
+    print("ok")
 
 
 if __name__ == "__main__":
