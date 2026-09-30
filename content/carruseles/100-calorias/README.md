@@ -1,6 +1,6 @@
 # Carrusel — "Así se ven 100 calorías"
 
-8 slides 1080×1350 (4:5) en `png/`. Fotos a sangre ocupando toda la slide, texto mínimo encima y marca discreta (`ayala.fit` abajo a la izquierda). Colores de marca: coral = poco volumen, verde = mucho volumen.
+8 slides 1080×1350 (4:5) en `png/`. Fotos a sangre ocupando toda la slide, texto mínimo encima y marca discreta (`ayala.fit` abajo a la izquierda). 
 
 | # | Slide |
 |---|---|
@@ -11,7 +11,7 @@
 | 5 | 240 ml de refresco / 3 tazas de palomitas |
 | 6 | 85 g de pollo / 6 claras (≈20 g de proteína cada uno) |
 | 7 | No va de prohibir. Va de elegir. |
-| 8 | CTA: comenta «PLAN» y te escribo por MD |
+| 8 | ¿Quieres comer así sin pasar hambre? → Comenta PLAN |
 
 Cantidades aproximadas (tablas BEDCA/USDA, redondeadas).
 
