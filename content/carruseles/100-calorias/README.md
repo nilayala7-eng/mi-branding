@@ -1,6 +1,6 @@
 # Carrusel — "Así se ven 100 calorías"
 
-8 slides 1080×1350 (4:5) en `png/`. Fotos a sangre ocupando toda la slide, texto mínimo encima y marca discreta (`ayala.fit` abajo a la izquierda).
+8 slides 1080×1350 (4:5) en `png/`. Fotos a sangre ocupando toda la slide, texto mínimo encima y marca discreta (`ayala.fit` abajo a la izquierda). Colores de marca: coral = poco volumen, verde = mucho volumen.
 
 | # | Slide |
 |---|---|
@@ -11,7 +11,7 @@
 | 5 | 240 ml de refresco / 3 tazas de palomitas |
 | 6 | 85 g de pollo / 6 claras (≈20 g de proteína cada uno) |
 | 7 | No va de prohibir. Va de elegir. |
-| 8 | CTA → link en bio |
+| 8 | CTA: comenta «PLAN» y te escribo por MD |
 
 Cantidades aproximadas (tablas BEDCA/USDA, redondeadas).
 
@@ -28,10 +28,10 @@ node content/carruseles/100-calorias/generar.mjs          # → png/
 
 ## Pie de post
 
-> ¿Sabías que 100 calorías pueden ser una cucharada de aceite… o un bol entero de fresas? 🍓
+> 100 calorías pueden ser una cucharada de aceite… o un bol entero de fresas 🍓
 >
 > No va de prohibir nada. Va de saber qué te llena más y elegir con cabeza.
 >
-> Guárdalo para tu próxima compra y dime: ¿cuál te ha sorprendido más? 👇
+> ¿Quieres aprender a comer así sin pasar hambre? Comenta PLAN y te escribo por MD para empezar juntos 💪
 >
-> ¿Quieres un plan hecho a tu medida? Link en mi bio 💪
+> (Guárdalo para tu próxima compra.)
