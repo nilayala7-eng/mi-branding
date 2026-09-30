@@ -17,6 +17,17 @@ const font = (pkg, file) =>
   `data:font/woff2;base64,${readFileSync(join(root, "node_modules/@fontsource-variable", pkg, "files", file)).toString("base64")}`;
 
 const HANDLE = "@ayala.fit_";
+
+// Si existe fotos/<alimento>.(jpg|jpeg|png|webp), se usa la foto real en lugar de la ilustración.
+const MIME = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp" };
+const art = (food) => {
+  for (const ext of Object.keys(MIME)) {
+    const file = join(here, "fotos", `${food}.${ext}`);
+    if (existsSync(file))
+      return `<img class="photo" src="data:${MIME[ext]};base64,${readFileSync(file).toString("base64")}" alt="">`;
+  }
+  return FOOD[food];
+};
 const TOTAL = 8;
 
 // Kcal aproximadas (tablas BEDCA/USDA, valores redondeados).
@@ -94,6 +105,9 @@ body { background:var(--bg); color:var(--ink); font-family:Inter,system-ui,sans-
 .card.b { background:var(--green-tint); border:2px solid #CDEBDA; }
 .card .art { height:360px; display:flex; align-items:center; justify-content:center; }
 .card .art svg { width:340px; height:340px; }
+.card .art img.photo { width:100%; height:100%; object-fit:cover; border-radius:22px; }
+.grid .tile { overflow:hidden; }
+.grid .tile img.photo { width:100%; height:100%; object-fit:cover; }
 .card .amt { font:700 104px/1 Sora; letter-spacing:-.04em; margin-top:18px; }
 .card.b .amt { color:var(--green-deep); }
 .card .lbl { font:500 31px/1.3 Inter; color:var(--ink); margin-top:14px; }
@@ -144,7 +158,7 @@ slides.push(
      <span class="swipe">Desliza →</span>
      <h1 class="display">Así se ven <span class="num hl hl-g">100</span><br>calorías</h1>
      <p class="sub">Mismas calorías, volumen muy distinto. Saber esto te ayuda a comer tranquilo, sin contar cada bocado.</p>
-     <div class="grid">${["aceite", "fresas", "almendras", "manzana", "chocolate", "sandia"].map((f) => `<div class="tile">${FOOD[f]}</div>`).join("")}</div>
+     <div class="grid">${["aceite", "fresas", "almendras", "manzana", "chocolate", "sandia"].map((f) => `<div class="tile">${art(f)}</div>`).join("")}</div>
      ${footer(1)}`,
     "cover",
   ),
@@ -152,7 +166,7 @@ slides.push(
 
 comparisons.forEach((c, i) => {
   const card = (side, cls, tag) =>
-    `<div class="card ${cls}"><span class="tag">${tag}</span><div class="art">${FOOD[side.food]}</div><div class="amt">${side.amount}</div><div class="lbl">${side.label}</div></div>`;
+    `<div class="card ${cls}"><span class="tag">${tag}</span><div class="art">${art(side.food)}</div><div class="amt">${side.amount}</div><div class="lbl">${side.label}</div></div>`;
   slides.push(
     page(
       `<span class="kicker">${c.kicker}</span>

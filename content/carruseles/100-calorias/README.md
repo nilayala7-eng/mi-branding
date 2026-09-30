@@ -17,6 +17,8 @@ Cantidades aproximadas (tablas BEDCA/USDA, redondeadas).
 
 **Regenerar:** `node content/carruseles/100-calorias/generar.mjs` (requiere `npm ci`).
 
+**Fotos reales:** mete fotos en `fotos/` con estos nombres (jpg, png o webp) y vuelve a generar. Cada foto sustituye a su ilustración: `aceite`, `fresas`, `almendras`, `manzana`, `chocolate`, `sandia`, `refresco`, `palomitas`, `pollo`, `claras`.
+
 **Pendiente:** slides con fotos de Nil y texto encima al estilo del post de referencia.
 
 ## Pie de post
