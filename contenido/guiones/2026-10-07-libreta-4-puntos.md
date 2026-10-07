@@ -18,10 +18,10 @@ Títulos alternativos para probar en Trial Reels:
 ```
 7 OCT → 31 DIC  (12 semanas)
 
-1. FUERZA  3 días · 45 min · cada músculo 2x/semana
-2. PLATO   ½ verdura · ¼ proteína · ¼ hidrato
-3. PASOS   8.000 al día
-4. DORMIR  7 h
+1. ENTRENA FUERZA 3 DÍAS   → 45 min · cuerpo completo
+2. MONTA BIEN TU PLATO      → ½ verdura · ¼ proteína · ¼ hidrato
+3. CAMINA 8.000 PASOS       → las llamadas, andando
+4. DUERME 7 HORAS           → sin esto, nada funciona
 ```
 
 ## Guion
@@ -30,20 +30,20 @@ Títulos alternativos para probar en Trial Reels:
 |---|---|---|---|
 | 0–4 s | **"QUEDAN 12 SEMANAS PARA NAVIDAD"** + "7 oct – 31 dic" | Abres la libreta y la enseñas a cámara | "Quedan doce semanas para Navidad. Y doce semanas dan para llegar en tu mejor forma en años." |
 | 4–8 s | — | Miras la libreta | "Y no va de matarte a cardio ni de quitar el pan. Esto es lo que haría yo, paso por paso:" |
-| 8–18 s | **"1. Fuerza · 3 días"** | Lees y vuelves a mirar a cámara | "Uno: fuerza tres días por semana, unos cuarenta y cinco minutos. Cuerpo completo, así cada músculo trabaja dos veces. Las últimas repeticiones de cada serie te tienen que costar." |
-| 18–30 s | **"2. ½ · ¼ · ¼"** | Pasas página | "Dos: no cuentes calorías, monta el plato. Mitad verdura, un cuarto proteína y un cuarto hidrato. ¿Quieres perder grasa? Repite poco. ¿Ganar músculo? Añade hidrato. Y proteína en todas las comidas, siempre." |
-| 30–38 s | **"3. 8.000 pasos"** | Apuntas con el lápiz | "Tres: ocho mil pasos al día. Las llamadas del trabajo, caminando. Es el ejercicio más infravalorado que hay." |
+| 8–18 s | **"1. ENTRENA FUERZA 3 DÍAS"** | Lees y vuelves a mirar a cámara | "Uno: fuerza tres días por semana, unos cuarenta y cinco minutos. Cuerpo completo, así cada músculo trabaja dos veces. Las últimas repeticiones de cada serie te tienen que costar." |
+| 18–30 s | **"2. MONTA BIEN TU PLATO"** (debajo: ½ verdura · ¼ proteína · ¼ hidrato) | Pasas página | "Dos: no cuentes calorías, monta el plato. Mitad verdura, un cuarto proteína y un cuarto hidrato. ¿Quieres perder grasa? Repite poco. ¿Ganar músculo? Añade hidrato. Y proteína en todas las comidas, siempre." |
+| 30–38 s | **"3. CAMINA 8.000 PASOS"** | Apuntas con el lápiz | "Tres: ocho mil pasos al día. Las llamadas del trabajo, caminando. Es el ejercicio más infravalorado que hay." |
 | 38–42 s | **"Pero…"** | Levantas la vista y haces una pausa | "Pero nada de esto funciona si te saltas el cuarto:" |
-| 42–50 s | **"4. Dormir 7 h"** | — | "Dormir siete horas. Con sueño comes peor, entrenas peor y la cabeza tira la toalla antes." |
+| 42–50 s | **"4. DUERME 7 HORAS"** | — | "Dormir siete horas. Con sueño comes peor, entrenas peor y la cabeza tira la toalla antes." |
 | 50–58 s | **"Comenta CAMBIO"** | Cierras la libreta | "¿Un día fallas? Pasa. Mañana sigues. Si quieres que te ayude con tu plan estas doce semanas, comenta CAMBIO." |
 
 ## Texto del post
 
 > Quedan 12 semanas para Navidad. 4 cosas. Nada raro. 💪
-> 1. Fuerza 3 días
-> 2. Plato ½ verdura · ¼ proteína · ¼ hidrato
-> 3. 8.000 pasos
-> 4. Dormir 7 h
+> 1. Entrena fuerza 3 días
+> 2. Monta bien tu plato (½ verdura · ¼ proteína · ¼ hidrato)
+> 3. Camina 8.000 pasos
+> 4. Duerme 7 horas
 > Guárdalo y empieza esta semana. ¿Con cuál te cuesta más? Comenta **CAMBIO** y lo vemos juntos.
 
 ## Notas
