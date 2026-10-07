@@ -1,4 +1,11 @@
-# Reel: la libreta, "de aquí a Navidad" en 4 puntos
+# Reel: "Quedan 12 semanas para Navidad"
+
+**Título en pantalla:** QUEDAN 12 SEMANAS PARA NAVIDAD (y esto es lo que haría)
+
+Títulos alternativos para probar en Trial Reels:
+- Tu cuerpo de Navidad se decide hoy
+- 12 semanas. 4 cosas. Ni cardio ni quitar el pan.
+- Si quisiera cambiar mi cuerpo antes de Navidad, haría esto
 
 - **Formato:** [video-libreta](../formatos/video-libreta.md). Selfie sentado, libreta con notas a mano, luz natural.
 - **Objetivo:** alcance + que te sigan (educativo + reto con fecha).
@@ -21,7 +28,7 @@
 
 | Tiempo | Pantalla | Acción | Lo que dices |
 |---|---|---|---|
-| 0–4 s | **"7 oct – 31 dic"** | Abres la libreta y la enseñas a cámara | "Del 7 de octubre al 31 de diciembre puedes llegar a Navidad en tu mejor forma en años. Doce semanas dan para mucho." |
+| 0–4 s | **"QUEDAN 12 SEMANAS PARA NAVIDAD"** + "7 oct – 31 dic" | Abres la libreta y la enseñas a cámara | "Quedan doce semanas para Navidad. Y doce semanas dan para llegar en tu mejor forma en años." |
 | 4–8 s | — | Miras la libreta | "Y no va de matarte a cardio ni de quitar el pan. Esto es lo que haría yo, paso por paso:" |
 | 8–18 s | **"1. Fuerza · 3 días"** | Lees y vuelves a mirar a cámara | "Uno: fuerza tres días por semana, unos cuarenta y cinco minutos. Cuerpo completo, así cada músculo trabaja dos veces. Las últimas repeticiones de cada serie te tienen que costar." |
 | 18–30 s | **"2. ½ · ¼ · ¼"** | Pasas página | "Dos: no cuentes calorías, monta el plato. Mitad verdura, un cuarto proteína y un cuarto hidrato. ¿Quieres perder grasa? Repite poco. ¿Ganar músculo? Añade hidrato. Y proteína en todas las comidas, siempre." |
@@ -32,7 +39,7 @@
 
 ## Texto del post
 
-> 12 semanas hasta Navidad. 4 cosas. Nada raro. 💪
+> Quedan 12 semanas para Navidad. 4 cosas. Nada raro. 💪
 > 1. Fuerza 3 días
 > 2. Plato ½ verdura · ¼ proteína · ¼ hidrato
 > 3. 8.000 pasos
